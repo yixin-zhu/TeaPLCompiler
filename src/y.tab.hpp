@@ -1,14 +1,14 @@
-/* A Bison parser, made by GNU Bison 2.3.  */
+/* A Bison parser, made by GNU Bison 3.5.1.  */
 
-/* Skeleton interface for Bison's Yacc-like parsers in C
+/* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
-   Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,9 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -33,39 +31,50 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* Tokens.  */
+/* Undocumented macros, especially those whose name start with YY_,
+   are private implementation details.  Do not rely on them.  */
+
+#ifndef YY_YY_Y_TAB_HPP_INCLUDED
+# define YY_YY_Y_TAB_HPP_INCLUDED
+/* Debug traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 1
+#endif
+#if YYDEBUG
+extern int yydebug;
+#endif
+
+/* Token type.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
-   /* Put the tokens into the symbol table, so that GDB and other debuggers
-      know about them.  */
-   enum yytokentype {
-     OP_PLUS = 258,
-     OP_MINUS = 259,
-     OP_MULTIPLY = 260,
-     OP_DIVTION = 261,
-     OP_LESS = 262,
-     OP_LE = 263,
-     OP_GREAT = 264,
-     OP_GE = 265,
-     OP_EQ = 266,
-     OP_NEQ = 267,
-     OP_OR = 268,
-     OP_AND = 269,
-     LET = 270,
-     RET = 271,
-     FN = 272,
-     TOKEN_ID = 273,
-     TOKEN_NUM = 274,
-     POS = 275,
-     CONTINUE = 276,
-     BREAK = 277,
-     NULL = 278,
-     IF = 279,
-     ELSE = 280,
-     WHILE = 281,
-     NATIVETYPE = 282,
-     UMINUS = 283
-   };
+  enum yytokentype
+  {
+    OP_PLUS = 258,
+    OP_MINUS = 259,
+    OP_MULTIPLY = 260,
+    OP_DIVTION = 261,
+    OP_LESS = 262,
+    OP_LE = 263,
+    OP_GREAT = 264,
+    OP_GE = 265,
+    OP_EQ = 266,
+    OP_NEQ = 267,
+    OP_OR = 268,
+    OP_AND = 269,
+    LET = 270,
+    RET = 271,
+    FN = 272,
+    STRUCT = 273,
+    TOKEN_ID = 274,
+    TOKEN_NUM = 275,
+    CONTINUE = 276,
+    BREAK = 277,
+    IF = 278,
+    ELSE = 279,
+    WHILE = 280,
+    INT = 281,
+    UMINUS = 282
+  };
 #endif
 /* Tokens.  */
 #define OP_PLUS 258
@@ -83,29 +92,27 @@
 #define LET 270
 #define RET 271
 #define FN 272
-#define TOKEN_ID 273
-#define TOKEN_NUM 274
-#define POS 275
+#define STRUCT 273
+#define TOKEN_ID 274
+#define TOKEN_NUM 275
 #define CONTINUE 276
 #define BREAK 277
-#define NULL 278
-#define IF 279
-#define ELSE 280
-#define WHILE 281
-#define NATIVETYPE 282
-#define UMINUS 283
+#define IF 278
+#define ELSE 279
+#define WHILE 280
+#define INT 281
+#define UMINUS 282
 
-
-
-
+/* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE
-#line 19 "parser.yacc"
+union YYSTYPE
 {
-    int num;
-    char* token;
-    char* key;
-    char* id;
+#line 19 "parser.yacc"
+
+
+    A_pos token;
+    A_pos key;
+    A_pos id;
     A_pos pos;
     A_varDecl       varDecl;
     A_varDef        varDef;
@@ -155,14 +162,18 @@ typedef union YYSTYPE
     A_boolBiOp      boolBiOp;
     A_comOp         comOp;
     A_boolUOp       boolUOp;
-}
-/* Line 1529 of yacc.c.  */
-#line 161 "y.tab.hpp"
-	YYSTYPE;
-# define yystype YYSTYPE /* obsolescent; will be withdrawn */
-# define YYSTYPE_IS_DECLARED 1
+
+#line 167 "y.tab.hpp"
+
+};
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
 #endif
+
 
 extern YYSTYPE yylval;
 
+int yyparse (void);
+
+#endif /* !YY_YY_Y_TAB_HPP_INCLUDED  */

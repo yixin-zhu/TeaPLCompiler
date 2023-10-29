@@ -10,16 +10,16 @@ extern int line, col;
 // your lexer
 %start COMMENT1  COMMENT2
 %%
-<COMMENT1>"\n" {++line;col=0;BEGIN INITIAL;}
+<COMMENT1>"\n" {++line;col=1;BEGIN INITIAL;}
 <COMMENT1>. {col+=yyleng;}
 
 <COMMENT2>"*/" {col+=yyleng;BEGIN INITIAL;}
-<COMMENT2>"\n" {++line;col=0;}
+<COMMENT2>"\n" {++line;col=1;}
 <COMMENT2>. {col+=yyleng;}
 
 <INITIAL>"//" {col+=yyleng;BEGIN COMMENT1;}
 <INITIAL>"/*" {col+=yyleng;BEGIN COMMENT2;}
-<INITIAL>"\n" {++line;col=0;}
+<INITIAL>"\n" {++line;col=1;}
 <INITIAL>" "|"\r"|"\t" {col+=yyleng;}
 
 <INITIAL>"+" {yylval.token = A_Pos(line,col); col+=yyleng; return OP_PLUS; }
@@ -42,19 +42,69 @@ extern int line, col;
     return(c);
 }
 <INITIAL>[a-z_A-Z][a-z_A-Z0-9]* {
-    yylval.exp = A_IdExp(A_Pos(line,col),String(yytext));
+    yylval.exp = A_TokenId(A_Pos(line,col), String(yytext));
     col+=yyleng; 
-    return ID;
+    return TOKEN_ID;
 }
 <INITIAL>[1-9][0-9]* {
-    yylval.exp=A_NumConst(A_Pos(line,col),calculate(yytext,yyleng));
+    yylval.exp = A_TokenNum(A_Pos(line,col),calculate(yytext,yyleng));
     col+=yyleng; 
-    return NUM;
+    return TOKEN_NUM;
 }
 <INITIAL> 0 {
-    yylval.exp = A_NumConst(A_Pos(line,col),0);
+    yylval.exp = A_TokenNum(A_Pos(line,col),0);
     col+=yyleng;
-    return NUM;
+    return TOKEN_NUM;
+}
+<INITIAL>"let" {
+    yylval.key=A_Pos(line,col);
+    pos+=yyleng;
+    return LET;
+}
+<INITIAL>"ret" {
+    yylval.key=A_Pos(line,col);
+    pos+=yyleng;
+    return RET;
+}
+<INITIAL>"fn" {
+    yylval.key=A_Pos(line,col);
+    pos+=yyleng;
+    return FN;
+}
+<INITIAL>"continue" {
+    yylval.key=A_Pos(line,col);
+    pos+=yyleng;
+    return CONTINUE;
+}
+<INITIAL>"break" {
+    yylval.key=A_Pos(line,col);
+    pos+=yyleng;
+    return BREAK;
+}
+<INITIAL>"if" {
+    yylval.key=A_Pos(line,col);
+    pos+=yyleng;
+    return IF;
+}
+<INITIAL>"else" {
+    yylval.key=A_Pos(line,col);
+    pos+=yyleng;
+    return ELSE;
+}
+<INITIAL>"while" {
+    yylval.key=A_Pos(line,col);
+    pos+=yyleng;
+    return WHILE;
+}
+<INITIAL>"struct" {
+    yylval.key=A_Pos(line,col);
+    pos+=yyleng;
+    return STRUCT;
+}
+<INITIAL>"int" {
+    yylval.key=A_Pos(line,col);
+    pos+=yyleng;
+    return INT;
 }
 <INITIAL>. {
     col+=yyleng;

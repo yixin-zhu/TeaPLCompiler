@@ -17,10 +17,10 @@ extern int  yywrap();
 // your parser
 %union
 {
-    int num;
-    char* token;
-    char* key;
-    char* id;
+
+    A_pos token;
+    A_pos key;
+    A_pos id;
     A_pos pos;
     A_varDecl       varDecl;
     A_varDef        varDef;
@@ -74,11 +74,11 @@ extern int  yywrap();
 
 // 终结符的类
 %token <token> OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVTION OP_LESS OP_LE OP_GREAT OP_GE OP_EQ OP_NEQ OP_OR OP_AND '(' ')' '=' ',' ';' '{' '}' '.'  '[' ']' '!'
-%token <key> LET RET FN
+%token <key> LET RET FN STRUCT
 %token <tokenId> TOKEN_ID
 %token <tokenNum> TOKEN_NUM
-%token <pos> POS CONTINUE BREAK NULL IF ELSE WHILE
-%token <ntype> NATIVETYPE
+%token <key> CONTINUE BREAK IF ELSE WHILE INT
+
 
 // 非终结符的类
 %type <program>             PROGRAM
@@ -151,7 +151,7 @@ PROGRAM : PROGRAMELEMENTLIST
 
 PROGRAMELEMENTLIST : PROGRAMELEMENT PROGRAMELEMENTLIST
     {
-        $$=A_programElementList($1,$2);
+        $$=A_ProgramElementList($1,$2);
     }
     |
     {
@@ -176,7 +176,7 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
     | ';' PROGRAMELEMENT
     {
-        $$=A_ProgramNullStmt($1->pos);
+        $$=A_ProgramNullStmt($2->pos);
     }
     |
     {
@@ -194,11 +194,11 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
   VARDECL : VARDECLSCALAR
     {
-        $$=A_VarDeclScalar($1->pos, $1);
+        $$=A_VarDecl_Scalar($1->pos, $1);
     }
     | VARDECLARRAY
     {
-        $$=A_VarDeclArray($1->pos, $1);
+        $$=A_VarDecl_Array($1->pos, $1);
     }
 
   VARDECLSCALAR : TOKEN_ID ':' TYPE
@@ -244,7 +244,7 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
     ARITHBIOPEXPR : ARITHEXPR AIRTHBIOP ARITHEXPR
     {
-        $$=A_ArithBiOpExpr($2->pos, $2, $1, $3);
+        $$=A_ArithBiOpExpr($1->pos, $2, $1, $3);
     }
 
     //OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVTION 
@@ -254,15 +254,15 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
     | OP_MINUS
     {
-        $$= A_sub
+        $$= A_sub;
     }
     | OP_MULTIPLY
     {
-        $$= A_mul
+        $$= A_mul;
     }
     | OP_DIVTION
     {
-        $$= A_div
+        $$= A_div;
     }
 
 
@@ -276,7 +276,7 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
     | '(' ARITHEXPR ')'
     {
-        $$=A_ArithUExprUnit($2->pos, $2);
+        $$=A_ArithExprUnit($2->pos, $2);
     }
     | FN_CALL
     {
@@ -297,7 +297,7 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
     ARITHUEXPR: ARITHUOP EXPRUNIT
     {
-        $$=A_ArithUExprUnit($1->pos, $1, $2);
+        $$=A_ArithUExpr($2->pos, $1, $2);
     }
 
 
@@ -321,7 +321,7 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
     
 
-    ARITHUOP : OP_MINUS
+    ARITHUOP : OP_MINUS %prec UMINUS
     {
         $$=A_neg;
     }
@@ -334,25 +334,25 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
     RIGHTVALLIST : RIGHTVAL ',' RIGHTVALLIST
     {
-        $$=A_RightValList($1->pos, $1, $3);
+        $$=A_RightValList($1, $3);
     }
     | RIGHTVAL
     {
-        $$=A_RightValList($1->pos, $1, NULL);
+        $$=A_RightValList($1, NULL);
     }
 
-    STRUCTDEF : 'struct' TOKEN_ID '{' VARDECLLIST '}'
+    STRUCTDEF: STRUCT TOKEN_ID '{' VARDECLLIST '}'
     {
         $$=A_StructDef($2->pos, $2->id, $4);
     }
 
     VARDECLLIST : VARDECL ',' VARDECLLIST
     {
-        $$=A_VarDeclList($1->pos, $1, $3);
+        $$=A_VarDeclList($1, $3);
     }
     | VARDECL
     {
-        $$=A_VarDeclList($1->pos, $1, NULL);
+        $$=A_VarDeclList($1, NULL);
     }
 
     VARDEFARRAY : TOKEN_ID '[' TOKEN_NUM ']' ':' TYPE '=' '{' RIGHTVALLIST '}'
@@ -364,9 +364,9 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     {
         $$=A_StructType($1->pos, $1->id);
     }
-    | NATIVETYPE
+    | INT
     {
-        $$=A_NativeType($1->pos, $1->ntype);
+        $$=A_NativeType($1, A_intTypeKind);
     }
 
     BOOLEXPR : BOOLBIOPEXPR 
@@ -380,7 +380,7 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
     BOOLBIOPEXPR :BOOLEXPR BOOLBIOP BOOLUNIT
     {
-        $$=A_BoolBiOpExpr($2->pos, $2, $1, $3);
+        $$=A_BoolBiOpExpr($1->pos, $2, $1, $3);
     }
   
     BOOLBIOP : OP_AND
@@ -479,7 +479,7 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
 
     //??? pos 从哪里来？
-    CODEBLOCKSTMT : '{' NULL ';' '}'
+    CODEBLOCKSTMT : '{' ';' '}'
     {
         $$=A_BlockNullStmt($2->pos);
     }
