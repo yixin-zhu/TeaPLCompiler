@@ -4,10 +4,12 @@
 #include "TeaplAst.h"
 #include "y.tab.hpp"
 extern int line, col;
+int c;
+int calculate(char *s, int len);
+char * text;
 %}
 
-// TODO:
-// your lexer
+
 %start COMMENT1  COMMENT2
 %%
 <COMMENT1>"\n" {++line;col=1;BEGIN INITIAL;}
@@ -35,6 +37,57 @@ extern int line, col;
 <INITIAL>"||" {yylval.token = A_Pos(line,col); col+=yyleng; return OP_OR; }
 <INITIAL>"&&" {yylval.token = A_Pos(line,col); col+=yyleng; return OP_AND; }
 
+
+<INITIAL>"let" {
+    yylval.key=A_Pos(line,col);
+    col+=yyleng;
+    return LET;
+}
+<INITIAL>"ret" {
+    yylval.key=A_Pos(line,col);
+    col+=yyleng;
+    return RET;
+}
+<INITIAL>"fn" {
+    yylval.key=A_Pos(line,col);
+    col+=yyleng;
+    return FN;
+}
+<INITIAL>"continue" {
+    yylval.key=A_Pos(line,col);
+    col+=yyleng;
+    return CONTINUE;
+}
+<INITIAL>"break" {
+    yylval.key=A_Pos(line,col);
+    col+=yyleng;
+    return BREAK;
+}
+<INITIAL>"if" {
+    yylval.key=A_Pos(line,col);
+    col+=yyleng;
+    return IF;
+}
+<INITIAL>"else" {
+    yylval.key=A_Pos(line,col);
+    col+=yyleng;
+    return ELSE;
+}
+<INITIAL>"while" {
+    yylval.key=A_Pos(line,col);
+    col+=yyleng;
+    return WHILE;
+}
+<INITIAL>"struct" {
+    yylval.key=A_Pos(line,col);
+    col+=yyleng;
+    return STRUCT;
+}
+<INITIAL>"int" {
+    yylval.key=A_Pos(line,col);
+    col+=yyleng;
+    return INT;
+}
 <INITIAL>"("|")"|":"|"="|","|";"|"{"|"}"|"."|"!"|"["|"]" {
     yylval.token=A_Pos(line,col);
     col+=yyleng;
@@ -42,69 +95,20 @@ extern int line, col;
     return(c);
 }
 <INITIAL>[a-z_A-Z][a-z_A-Z0-9]* {
-    yylval.exp = A_TokenId(A_Pos(line,col), String(yytext));
+    strcpy(text,yytext);
+    yylval.tokenId = A_TokenId(A_Pos(line,col), text);
     col+=yyleng; 
     return TOKEN_ID;
 }
 <INITIAL>[1-9][0-9]* {
-    yylval.exp = A_TokenNum(A_Pos(line,col),calculate(yytext,yyleng));
+    yylval.tokenNum = A_TokenNum(A_Pos(line,col),calculate(yytext,yyleng));
     col+=yyleng; 
     return TOKEN_NUM;
 }
-<INITIAL> 0 {
-    yylval.exp = A_TokenNum(A_Pos(line,col),0);
+<INITIAL>0 {
+    yylval.tokenNum = A_TokenNum(A_Pos(line,col),0);
     col+=yyleng;
     return TOKEN_NUM;
-}
-<INITIAL>"let" {
-    yylval.key=A_Pos(line,col);
-    pos+=yyleng;
-    return LET;
-}
-<INITIAL>"ret" {
-    yylval.key=A_Pos(line,col);
-    pos+=yyleng;
-    return RET;
-}
-<INITIAL>"fn" {
-    yylval.key=A_Pos(line,col);
-    pos+=yyleng;
-    return FN;
-}
-<INITIAL>"continue" {
-    yylval.key=A_Pos(line,col);
-    pos+=yyleng;
-    return CONTINUE;
-}
-<INITIAL>"break" {
-    yylval.key=A_Pos(line,col);
-    pos+=yyleng;
-    return BREAK;
-}
-<INITIAL>"if" {
-    yylval.key=A_Pos(line,col);
-    pos+=yyleng;
-    return IF;
-}
-<INITIAL>"else" {
-    yylval.key=A_Pos(line,col);
-    pos+=yyleng;
-    return ELSE;
-}
-<INITIAL>"while" {
-    yylval.key=A_Pos(line,col);
-    pos+=yyleng;
-    return WHILE;
-}
-<INITIAL>"struct" {
-    yylval.key=A_Pos(line,col);
-    pos+=yyleng;
-    return STRUCT;
-}
-<INITIAL>"int" {
-    yylval.key=A_Pos(line,col);
-    pos+=yyleng;
-    return INT;
 }
 <INITIAL>. {
     col+=yyleng;
