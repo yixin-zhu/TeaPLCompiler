@@ -20,6 +20,7 @@ extern int  yywrap();
     int num;
     char* token;
     char* key;
+    char* id;
     A_pos pos;
     A_varDecl varDecl;
     A_varDef varDef;
@@ -63,11 +64,16 @@ extern int  yywrap();
     A_program program;
     A_tokenId tokenId;
     A_tokenNum tokenNum;
+    A_type type;
+    A_arithBiOp arithBiOp;
+    A_arithUOp arithUOp;
 }
 
-// token的类
+// 终结符的类
 %token <token> OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVTION OP_LESS OP_LE OP_GREAT OP_GE OP_EQ OP_NEQ OP_OR OP_AND '(' ')' '=' ',' ';' '{' '}' '.'  '[' ']' '!'
 %token <key> LET RET FN
+%token <num> NUM
+%token <id> ID
 
 // 非终结符的类
 %type<program> PROGRAM
@@ -84,7 +90,21 @@ extern int  yywrap();
 %type<varDefScalar> VARDEFSCALAR
 %type<varDefArray> VARDEFARRAY
 %type<rightVal> RIGHTVAL
-
+%type<tokenId> TOKEN_ID
+%type<tokenNum> TOKEN_NUM
+%type<type> TYPE
+%type<arithExpr> ARITHEXPR
+%type<boolExpr> BOOLEXPR
+%type<arithBiOpExpr> ARITHBIOPEXPR
+%type<exprUnit> EXPRUNIT
+%type<arithBiOp> AIRTHBIOP
+%type<arithUOp> ARITHUOP
+%type<fnCall> FN_CALL
+%type<rightValList> RIGHTVALLIST
+%type<arrayExpr> ARRAYEXPR
+%type<indexExpr> INDEXEXPR
+%type<memberExpr> MEMBEREXPR
+%type<arithUExpr> ARITHUEXPR
 
 %right '='
 %left OP_OR
@@ -116,7 +136,7 @@ PROGRAMELEMENTLIST : PROGRAMELEMENT PROGRAMELEMENTLIST
         $$=NULL;
     }
 
-  PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
+PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     {
         $$=A_ProgramVarDeclStmt($1->pos, $1);
     }
@@ -161,12 +181,12 @@ PROGRAMELEMENTLIST : PROGRAMELEMENT PROGRAMELEMENTLIST
 
   VARDECLSCALAR : ID ':' TYPE
     {
-        $$=A_VarDeclScalar($3->pos, $1, $3);
+        $$=A_VarDeclScalar($1->pos, $1, $3);
     }
   
   VARDECLARRAY : ID '[' NUM ']' ':' TYPE
     {
-        $$=A_VarDeclArray($6->pos, $1, $3, $6);
+        $$=A_VarDeclArray($1->pos, $1, $3, $6);
     }
 
   VARDEF : VARDEFSCALAR
@@ -182,9 +202,121 @@ PROGRAMELEMENTLIST : PROGRAMELEMENT PROGRAMELEMENTLIST
     {
         $$=A_VarDefScalar($3->pos, $1, $3, $5);
     }
+  RIGHTVAL : ARITHEXPR
+    {
+        $$=A_ArithExprRVal($1->pos, $1);
+    }
+    | BOOLEXPR
+    {
+        $$=A_BoolExprRVal($1->pos, $1);
+    }
+    ARITHEXPR : ARITHBIOPEXPR
+    {
+        $$=A_ArithBiOp_Expr($1->pos, $1);
+    }
+    | EXPRUNIT
+    {
+        $$=A_ExprUnit($1->pos, $1);
+    }
 
 
+    ARITHBIOPEXPR : ARITHEXPR AIRTHBIOP ARITHEXPR
+    {
+        $$=A_ArithBiOpExpr($2->pos, $2, $1, $3);
+    }
+    //OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVTION 
+    AIRTHBIOP : OP_PLUS
+    {
+        $$= A_add;
+    }
+    | OP_MINUS
+    {
+        $$= A_sub
+    }
+    | OP_MULTIPLY
+    {
+        $$= A_mul
+    }
+    | OP_DIVTION
+    {
+        $$= A_div
+    }
 
+
+    EXPRUNIT : NUM 
+    {
+        $$=A_NumExprUnit($1->pos, $1);
+    }
+    | ID
+    {
+        $$=A_IdExprUnit($1->pos, $1);
+    }
+    | '(' ARITHEXPR ')'
+    {
+        $$=A_ArithUExprUnit($2->pos, $2);
+    }
+    | FN_CALL
+    {
+        $$=A_CallExprUnit($1->pos, $1);
+    }
+    | ARRAYEXPR
+    {
+        $$=A_ArrayExprUnit($1->pos, $1);
+    }
+    | MEMBEREXPR
+    {
+        $$=A_MemberExprUnit($1->pos, $1);
+    }
+    | ARITHUEXPR
+    {
+        $$=A_ArithUExprUnit($1->pos, $1);
+    }
+
+    ARITHUEXPR: ARITHUOP EXPRUNIT
+    {
+        $$=A_ArithUExprUnit($1->pos, $1, $2);
+    }
+
+
+    ARRAYEXPR: ID '[' INDEXEXPR ']'
+    {
+        $$=A_ArrayExpr($1->pos, $1, $3);
+    }
+    
+    INDEXEXPR: ID
+    {
+        $$=A_IdIndexExpr($1->pos, $1);
+    }
+    | NUM
+    {
+        $$=A_NumIndexExpr($1->pos, $1);
+    }
+
+    MEMBEREXPR: ID '.' ID
+    {
+        $$=A_MemberExpr($1->pos, $1, $3);
+    }
+    
+
+    ARITHUOP : OP_MINUS
+    {
+        $$=A_neg;
+    }
+
+    FN_CALL : ID '(' RIGHTVAL ')' 
+    {
+        $$=A_FnCall($1->pos, $1, $3);
+    }
+    | ID '(' RIGHTVALLIST ')'
+    {
+        $$=A_FnCall($1->pos, $1, $3);
+    }
+
+
+    RIGHTVALLIST : RIGHTVAL ',' RIGHTVALLIST
+    {
+        $$=A_RightValList($1->pos, $1, $3);
+    }
 %% 
 
 
