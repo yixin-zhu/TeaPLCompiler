@@ -394,7 +394,7 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
     BOOLUNIT : COMPEXPR
     {
-        $$=A_ComExpr($1->pos, $1);
+        $$=A_ComExprUnit($1->pos, $1);
     }
     | BOOLEXPR
     {
@@ -402,12 +402,12 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
     | BOOLUOPEXPR
     {
-        $$=A_BoolUOpExpr($1->pos, $1);
+        $$=A_BoolUOpExprUnit($1->pos, $1);
     }
 
     COMPEXPR : EXPRUNIT COMOP EXPRUNIT
     {
-        $$=A_ComExpr($2->pos, $2, $1, $3);
+        $$=A_ComExpr($1->pos, $2, $1, $3);
     }
 
     COMOP : OP_EQ
@@ -447,21 +447,21 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
     FNDECLSTMT : FNDECL ';'
     {
-        $$=A_FnDecl($1->pos, $1);
+        $$=A_FnDeclStmt($1->pos, $1);
     }
 
     FNDECL : FN TOKEN_ID '(' PARAMDECL ')' 
     {
-        $$=A_FnDecl($1->pos, $2->id, $4, NULL);
+        $$=A_FnDecl($1, $2->id, $4, NULL);
     }
     | FN TOKEN_ID '(' PARAMDECL ')' '-' '>' TYPE
     {
-        $$=A_FnDecl($1->pos, $2->id, $4, $8);
+        $$=A_FnDecl($1, $2->id, $4, $8);
     }
 
     PARAMDECL : VARDECLLIST 
     {
-        $$=A_ParamDecl($1->pos, $1);
+        $$=A_ParamDecl($1);
     }
 
     FNDEF : FNDECL CODEBLOCKSTMTLIST
@@ -471,17 +471,17 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
     CODEBLOCKSTMTLIST : CODEBLOCKSTMT  CODEBLOCKSTMTLIST
     {
-        $$=A_CodeBlockStmtList($1->pos, $1, $2);
+        $$=A_CodeBlockStmtList($1, $2);
     }
     | CODEBLOCKSTMT
     {
-        $$=A_CodeBlockStmtList($1->pos, $1, NULL);
+        $$=A_CodeBlockStmtList($1, NULL);
     }
 
     //??? pos 从哪里来？
     CODEBLOCKSTMT : '{' ';' '}'
     {
-        $$=A_BlockNullStmt($2->pos);
+        $$=A_BlockNullStmt($1);
     }
     | '{' VARDECLSTMT '}'
     {
@@ -509,16 +509,16 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
     | '{' CONTINUE ';' '}'
     {
-        $$=A_BlockContinueStmt($2->pos);
+        $$=A_BlockContinueStmt($2);
     }
     | '{' BREAK ';' '}'
     {
-        $$=A_BlockBreakStmt($2->pos, $2);
+        $$=A_BlockBreakStmt($2);
     }
 
     RETURNSTMT : RET RIGHTVAL ';'
     {
-        $$=A_ReturnStmt($1->pos, $2);
+        $$=A_ReturnStmt($1, $2);
     }
 
     ASSIGNSTMT : LEFTVAL '=' RIGHTVAL ';'
@@ -528,15 +528,15 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
     LEFTVAL : TOKEN_ID
     {
-        $$=A_IdLeftVal($1->pos, $1->id);
+        $$=A_IdExprLVal($1->pos, $1->id);
     }
     | ARRAYEXPR
     {
-        $$=A_ArrayLeftVal($1->pos, $1);
+        $$=A_ArrExprLVal($1->pos, $1);
     }
     | MEMBEREXPR
     {
-        $$=A_MemberLeftVal($1->pos, $1);
+        $$=A_MemberExprLVal($1->pos, $1);
     }
 
     CALLSTMT : FN_CALL ';'
@@ -544,18 +544,18 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
         $$=A_CallStmt($1->pos, $1);
     }
 
-    IFSTMT : IF '(' BOOLEXPR ')' CODEBLOCKSTMT ELSE CODEBLOCKSTMT
+    IFSTMT : IF '(' BOOLEXPR ')' CODEBLOCKSTMTLIST ELSE CODEBLOCKSTMTLIST
     {
-        $$=A_IfStmt($1->pos, $3, $5, $7);
+        $$=A_IfStmt($1, $3, $5, $7);
     }
-    | IF '(' BOOLEXPR ')' CODEBLOCKSTMT
+    | IF '(' BOOLEXPR ')' CODEBLOCKSTMTLIST
     {
-        $$=A_IfStmt($1->pos, $3, $5, NULL);
+        $$=A_IfStmt($1, $3, $5, NULL);
     }
 
-    WHILESTMT : WHILE '(' BOOLEXPR ')' CODEBLOCKSTMT
+    WHILESTMT : WHILE '(' BOOLEXPR ')' CODEBLOCKSTMTLIST
     {
-        $$=A_WhileStmt($1->pos, $3, $5);
+        $$=A_WhileStmt($1, $3, $5);
     }
 %% 
 
