@@ -73,7 +73,7 @@ extern int  yywrap();
 }
 
 // 终结符的类
-%token <token> OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVTION OP_LESS OP_LE OP_GREAT OP_GE OP_EQ OP_NEQ OP_OR OP_AND '(' ')' '=' ',' ';' '{' '}' '.'  '[' ']' '!'
+%token <token> OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVTION OP_LESS OP_LE OP_GREAT OP_GE OP_EQ OP_NEQ OP_OR OP_AND '(' ')' '=' ',' ';' '{' '}' '.'  '[' ']' '!' OP_ARROW
 %token <key> LET RET FN STRUCT
 %token <tokenId> TOKEN_ID
 %token <tokenNum> TOKEN_NUM
@@ -138,6 +138,7 @@ extern int  yywrap();
 %right '!' UMINUS
 %left '[' ']' '(' ')'
 %left '.'
+%left ';'
 %right ELSE
 
 %start PROGRAM
@@ -153,14 +154,16 @@ PROGRAMELEMENTLIST : PROGRAMELEMENT PROGRAMELEMENTLIST
     {
         $$=A_ProgramElementList($1,$2);
     }
-    |
+    | PROGRAMELEMENT 
     {
-        $$=NULL;
+        $$=A_ProgramElementList($1,NULL);
     }
 
 PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     {
+      printf("programelement 1\n");
         $$=A_ProgramVarDeclStmt($1->pos, $1);
+      printf("eof programelement 1\n");
     }
     | STRUCTDEF PROGRAMELEMENT
     {
@@ -176,7 +179,9 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
     | ';' PROGRAMELEMENT
     {
+      printf("programelement 5\n");
         $$=A_ProgramNullStmt($2->pos);
+      printf("eof programelement 5\n");
     }
     |
     {
@@ -184,17 +189,26 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
 
   VARDECLSTMT : LET VARDECL ';'
-    {
-        $$=A_VarDeclStmt($2->pos, $2);
+    {   
+        printf("vardeclstmt 1\n");
+        printf("pos %d\n", $2->pos->line);
+        $$=A_VarDeclStmt($1, $2);
+        printf("eof vardeclstmt 1\n");
     }
     | LET VARDEF ';'
     {
+        printf("vardeclstmt 2\n");
+        printf("pos %d\n", $2->pos->line);
         $$=A_VarDefStmt($2->pos, $2);
+        printf("eof vardeclstmt 2\n");
     }
 
   VARDECL : VARDECLSCALAR
     {
+        printf("vardecl\n");
+        printf("pos %d\n", $1->pos->line);
         $$=A_VarDecl_Scalar($1->pos, $1);
+        printf("eof vardecl\n");
     }
     | VARDECLARRAY
     {
@@ -203,7 +217,9 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
   VARDECLSCALAR : TOKEN_ID ':' TYPE
     {
+      printf("vardeclscalar\n");
         $$=A_VarDeclScalar($1->pos, $1->id, $3);
+      printf("eof vardeclscalar\n");
     }
   
   VARDECLARRAY : TOKEN_ID '[' TOKEN_NUM ']' ':' TYPE
@@ -213,7 +229,9 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
   VARDEF : VARDEFSCALAR
     {
+        printf("vardef\n");
         $$=A_VarDef_Scalar($1->pos, $1);
+        printf("eof vardef\n");
     }
     | VARDEFARRAY
     {
@@ -222,11 +240,15 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
   VARDEFSCALAR : TOKEN_ID ':' TYPE '=' RIGHTVAL
     {
+        printf("vardefscalar\n");
         $$=A_VarDefScalar($3->pos, $1->id, $3, $5);
+        printf("eof vardefscalar\n");
     }
   RIGHTVAL : ARITHEXPR
     {
+        printf("rightval\n");
         $$=A_ArithExprRVal($1->pos, $1);
+        printf("eof rightval\n");
     }
     | BOOLEXPR
     {
@@ -362,10 +384,12 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
     TYPE : TOKEN_ID
     {
+        printf("type %s\n", $1->id);
         $$=A_StructType($1->pos, $1->id);
     }
     | INT
     {
+        printf("type int\n");
         $$=A_NativeType($1, A_intTypeKind);
     }
 
@@ -454,9 +478,9 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     {
         $$=A_FnDecl($1, $2->id, $4, NULL);
     }
-    | FN TOKEN_ID '(' PARAMDECL ')' '-' '>' TYPE
+    | FN TOKEN_ID '(' PARAMDECL ')' OP_ARROW TYPE
     {
-        $$=A_FnDecl($1, $2->id, $4, $8);
+        $$=A_FnDecl($1, $2->id, $4, $7);
     }
 
     PARAMDECL : VARDECLLIST 
@@ -485,7 +509,9 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
     | '{' VARDECLSTMT '}'
     {
+      printf("codeblockstmt\n");
         $$=A_BlockVarDeclStmt($2->pos, $2);
+      printf("eof codeblockstmt\n");
     }
     | '{' ASSIGNSTMT '}'
     {
@@ -523,11 +549,13 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
 
     ASSIGNSTMT : LEFTVAL '=' RIGHTVAL ';'
     {
+      printf("assignstmt\n");
         $$=A_AssignStmt($1->pos, $1, $3);
     }
 
     LEFTVAL : TOKEN_ID
     {
+        printf("tokenid\n");
         $$=A_IdExprLVal($1->pos, $1->id);
     }
     | ARRAYEXPR
@@ -567,6 +595,7 @@ void yyerror(char * s)
 }
 int yywrap()
 {
+  printf("yywrap\n");
   return(1);
 }
 }

@@ -61,19 +61,20 @@ extern int yydebug;
     OP_NEQ = 267,
     OP_OR = 268,
     OP_AND = 269,
-    LET = 270,
-    RET = 271,
-    FN = 272,
-    STRUCT = 273,
-    TOKEN_ID = 274,
-    TOKEN_NUM = 275,
-    CONTINUE = 276,
-    BREAK = 277,
-    IF = 278,
-    ELSE = 279,
-    WHILE = 280,
-    INT = 281,
-    UMINUS = 282
+    OP_ARROW = 270,
+    LET = 271,
+    RET = 272,
+    FN = 273,
+    STRUCT = 274,
+    TOKEN_ID = 275,
+    TOKEN_NUM = 276,
+    CONTINUE = 277,
+    BREAK = 278,
+    IF = 279,
+    ELSE = 280,
+    WHILE = 281,
+    INT = 282,
+    UMINUS = 283
   };
 #endif
 /* Tokens.  */
@@ -89,19 +90,20 @@ extern int yydebug;
 #define OP_NEQ 267
 #define OP_OR 268
 #define OP_AND 269
-#define LET 270
-#define RET 271
-#define FN 272
-#define STRUCT 273
-#define TOKEN_ID 274
-#define TOKEN_NUM 275
-#define CONTINUE 276
-#define BREAK 277
-#define IF 278
-#define ELSE 279
-#define WHILE 280
-#define INT 281
-#define UMINUS 282
+#define OP_ARROW 270
+#define LET 271
+#define RET 272
+#define FN 273
+#define STRUCT 274
+#define TOKEN_ID 275
+#define TOKEN_NUM 276
+#define CONTINUE 277
+#define BREAK 278
+#define IF 279
+#define ELSE 280
+#define WHILE 281
+#define INT 282
+#define UMINUS 283
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -163,7 +165,7 @@ union YYSTYPE
     A_comOp         comOp;
     A_boolUOp       boolUOp;
 
-#line 167 "y.tab.hpp"
+#line 169 "y.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

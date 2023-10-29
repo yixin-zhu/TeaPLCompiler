@@ -1,12 +1,16 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "TeaplAst.h"
 #include "y.tab.hpp"
 extern int line, col;
+typedef char *string;
 int c;
 int calculate(char *s, int len);
-char * text;
+char *checked_malloc(int);
+string String(char *s);
 %}
 
 
@@ -21,9 +25,19 @@ char * text;
 
 <INITIAL>"//" {col+=yyleng;BEGIN COMMENT1;}
 <INITIAL>"/*" {col+=yyleng;BEGIN COMMENT2;}
-<INITIAL>"\n" {++line;col=1;}
-<INITIAL>" "|"\r"|"\t" {col+=yyleng;}
+<INITIAL>"\n" {
+    printf("* new line\n");
+    ++line;
+    col=1;
+}
+<INITIAL>" "|"\r"|"\t" {
+    printf("* blank %d\n", yyleng);
+    col+=yyleng;
+}
 
+<INITIAL>"->" {
+    printf("* ->\n");
+    yylval.token = A_Pos(line,col); col+=yyleng; return OP_ARROW; }
 <INITIAL>"+" {yylval.token = A_Pos(line,col); col+=yyleng; return OP_PLUS; }
 <INITIAL>"-" {yylval.token = A_Pos(line,col); col+=yyleng; return OP_MINUS;}
 <INITIAL>"*" {yylval.token = A_Pos(line,col); col+=yyleng; return OP_MULTIPLY; }
@@ -41,14 +55,16 @@ char * text;
 <INITIAL>"let" {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
+    printf("* let %d\n", yyleng);
     return LET;
 }
 <INITIAL>"ret" {
-    yylval.key=A_Pos(line,col);
+    yylval.key=A_Pos(line,col); 
     col+=yyleng;
     return RET;
 }
 <INITIAL>"fn" {
+    printf("* fn\n");
     yylval.key=A_Pos(line,col);
     col+=yyleng;
     return FN;
@@ -79,28 +95,34 @@ char * text;
     return WHILE;
 }
 <INITIAL>"struct" {
+    printf("* struct\n");
     yylval.key=A_Pos(line,col);
     col+=yyleng;
+    printf("* struct %d %d\n", yyleng, col);
     return STRUCT;
 }
 <INITIAL>"int" {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
+    printf("* int\n");
     return INT;
 }
 <INITIAL>"("|")"|":"|"="|","|";"|"{"|"}"|"."|"!"|"["|"]" {
     yylval.token=A_Pos(line,col);
     col+=yyleng;
     c = yytext[0];
+    printf("* c: %c\n",c);
     return(c);
 }
 <INITIAL>[a-z_A-Z][a-z_A-Z0-9]* {
-    strcpy(text,yytext);
-    yylval.tokenId = A_TokenId(A_Pos(line,col), text);
+    char *s = String(yytext);
+    printf("* TokenID: %s\n", s);
+    yylval.tokenId = A_TokenId(A_Pos(line,col), s);
     col+=yyleng; 
     return TOKEN_ID;
 }
 <INITIAL>[1-9][0-9]* {
+    printf("* %d\n", calculate(yytext,yyleng));
     yylval.tokenNum = A_TokenNum(A_Pos(line,col),calculate(yytext,yyleng));
     col+=yyleng; 
     return TOKEN_NUM;
@@ -124,8 +146,20 @@ int calculate(char *s, int len) {
     return ret;
 }
 
+char *checked_malloc(int len){
+    char *p = (char *)malloc(len);
+    if (!p) {
+        fprintf(stderr,"\nRan out of memory!\n");
+        exit(1);
+    }
+    return p;
+}
 
-
+string String(char *s){
+    string p = checked_malloc(strlen(s)+3);
+    strcpy(p,s);
+    return p;
+}
 
 
 

@@ -1,7 +1,7 @@
 CXX = clang++
 CXXFLAGS = -std=c++17 -g
 
-TESTCASE_DIR := t1
+TESTCASE_DIR := tests
 TESTCASES = $(wildcard $(TESTCASE_DIR)/*.tea)
 LLFILES = $(patsubst $(TESTCASE_DIR)/%.tea,$(TESTCASE_DIR)/%.ast,$(TESTCASES))
 
@@ -10,7 +10,9 @@ LLFILES = $(patsubst $(TESTCASE_DIR)/%.tea,$(TESTCASE_DIR)/%.ast,$(TESTCASES))
 run: $(patsubst $(TESTCASE_DIR)/%.tea,$(TESTCASE_DIR)/%.ast,$(TESTCASES))
 
 $(TESTCASE_DIR)/%.ast: $(TESTCASE_DIR)/%.tea $(TESTCASE_DIR)/%.refast compiler
+	@echo "Testing 1"
 	@./compiler $< $@
+	@echo "Testing 2"
 	@diff $@ $(word 2,$^)
 	@echo PASS $*
 	@echo
