@@ -1,14 +1,14 @@
-/* A Bison parser, made by GNU Bison 3.5.1.  */
+/* A Bison parser, made by GNU Bison 2.3.  */
 
-/* Bison interface for Yacc-like parsers in C
+/* Skeleton interface for Bison's Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
-   Inc.
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
+   This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,7 +16,9 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -31,64 +33,39 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
-
-#ifndef YY_YY_Y_TAB_HPP_INCLUDED
-# define YY_YY_Y_TAB_HPP_INCLUDED
-/* Debug traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 1
-#endif
-#if YYDEBUG
-extern int yydebug;
-#endif
-
-/* Token type.  */
+/* Tokens.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
-  enum yytokentype
-  {
-    OP_PLUS = 258,
-    OP_MINUS = 259,
-    OP_MULTIPLY = 260,
-    OP_DIVTION = 261,
-    OP_LESS = 262,
-    OP_LE = 263,
-    OP_GREAT = 264,
-    OP_GE = 265,
-    OP_EQ = 266,
-    OP_NEQ = 267,
-    OP_OR = 268,
-    OP_AND = 269,
-    PUTINT = 270,
-    PUTCH = 271,
-    PUTARRAY = 272,
-    GETINT = 273,
-    GETCH = 274,
-    GETARRAY = 275,
-    MAIN = 276,
-    INT = 277,
-    PUBLIC = 278,
-    CLASS = 279,
-    IF = 280,
-    ELSE = 281,
-    WHILE = 282,
-    CONTINUE = 283,
-    BREAK = 284,
-    RETURN = 285,
-    STARTTIME = 286,
-    STOPTIME = 287,
-    TTRUE = 288,
-    FFALSE = 289,
-    LENGTH = 290,
-    THIS = 291,
-    NEW = 292,
-    EXTENDS = 293,
-    ID = 294,
-    NUM = 295,
-    UMINUS = 296
-  };
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     OP_PLUS = 258,
+     OP_MINUS = 259,
+     OP_MULTIPLY = 260,
+     OP_DIVTION = 261,
+     OP_LESS = 262,
+     OP_LE = 263,
+     OP_GREAT = 264,
+     OP_GE = 265,
+     OP_EQ = 266,
+     OP_NEQ = 267,
+     OP_OR = 268,
+     OP_AND = 269,
+     LET = 270,
+     RET = 271,
+     FN = 272,
+     TOKEN_ID = 273,
+     TOKEN_NUM = 274,
+     POS = 275,
+     CONTINUE = 276,
+     BREAK = 277,
+     NULL = 278,
+     IF = 279,
+     ELSE = 280,
+     WHILE = 281,
+     NATIVETYPE = 282,
+     UMINUS = 283
+   };
 #endif
 /* Tokens.  */
 #define OP_PLUS 258
@@ -103,69 +80,89 @@ extern int yydebug;
 #define OP_NEQ 267
 #define OP_OR 268
 #define OP_AND 269
-#define PUTINT 270
-#define PUTCH 271
-#define PUTARRAY 272
-#define GETINT 273
-#define GETCH 274
-#define GETARRAY 275
-#define MAIN 276
-#define INT 277
-#define PUBLIC 278
-#define CLASS 279
-#define IF 280
-#define ELSE 281
-#define WHILE 282
-#define CONTINUE 283
-#define BREAK 284
-#define RETURN 285
-#define STARTTIME 286
-#define STOPTIME 287
-#define TTRUE 288
-#define FFALSE 289
-#define LENGTH 290
-#define THIS 291
-#define NEW 292
-#define EXTENDS 293
-#define ID 294
-#define NUM 295
-#define UMINUS 296
+#define LET 270
+#define RET 271
+#define FN 272
+#define TOKEN_ID 273
+#define TOKEN_NUM 274
+#define POS 275
+#define CONTINUE 276
+#define BREAK 277
+#define NULL 278
+#define IF 279
+#define ELSE 280
+#define WHILE 281
+#define NATIVETYPE 282
+#define UMINUS 283
 
-/* Value type.  */
+
+
+
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-union YYSTYPE
-{
+typedef union YYSTYPE
 #line 19 "parser.yacc"
-
-    A_pos token; // 例：符号
-    A_pos key; // 关键字
-    A_type type;
-    A_program program;
-    A_mainMethod mainMethod;
-    A_classDecl classDecl;
-    A_classDeclList classDeclList;
-    A_methodDecl methodDecl;
-    A_methodDeclList methodDeclList;
-    A_formal formal;
-    A_formalList formalList;
-    A_varDecl varDecl;
-    A_varDeclList varDeclList;
-    A_stmList stmList;
-    A_stm stm;
-    A_exp exp;
-    A_expList expList;
-
-#line 159 "y.tab.hpp"
-
-};
-typedef union YYSTYPE YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
+{
+    int num;
+    char* token;
+    char* key;
+    char* id;
+    A_pos pos;
+    A_varDecl       varDecl;
+    A_varDef        varDef;
+    A_rightVal      rightVal;
+    A_arithExpr     arithExpr;
+    A_boolExpr      boolExpr;
+    A_arithBiOpExpr arithBiOpExpr;
+    A_arithUExpr    arithUExpr;
+    A_exprUnit      exprUnit;
+    A_fnCall        fnCall;
+    A_indexExpr     indexExpr;
+    A_arrayExpr     arrayExpr;
+    A_memberExpr    memberExpr;
+    A_boolUnit      boolUnit;
+    A_boolBiOpExpr  boolBiOpExpr;
+    A_boolUOpExpr   boolUOpExpr;
+    A_comExpr       comExpr;
+    A_leftVal       leftVal;
+    A_assignStmt    assignStmt;
+    A_rightValList  rightValList;
+    A_varDefScalar  varDefScalar;
+    A_varDefArray   varDefArray;
+    A_varDeclScalar varDeclScalar;
+    A_varDeclArray  varDeclArray;
+    A_varDeclStmt   varDeclStmt;
+    A_varDeclList   varDeclList;
+    A_structDef     structDef;
+    A_paramDecl     paramDecl;
+    A_fnDecl        fnDecl;
+    A_fnDef         fnDef;
+    A_codeBlockStmt codeBlockStmt;
+    A_ifStmt        ifStmt;
+    A_whileStmt     whileStmt;
+    A_fnDeclStmt    fnDeclStmt;
+    A_callStmt      callStmt;
+    A_returnStmt    returnStmt;
+    A_programElement        programElement;
+    A_codeBlockStmtList     codeBlockStmtList;
+    A_programElementList    programElementList;
+    A_program       program;
+    A_tokenId       tokenId;
+    A_tokenNum      tokenNum;
+    A_type          type;
+    A_arithBiOp     arithBiOp;
+    A_arithUOp      arithUOp;
+    A_nativeType    ntype;
+    A_boolBiOp      boolBiOp;
+    A_comOp         comOp;
+    A_boolUOp       boolUOp;
+}
+/* Line 1529 of yacc.c.  */
+#line 161 "y.tab.hpp"
+	YYSTYPE;
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
-
 
 extern YYSTYPE yylval;
 
-int yyparse (void);
-
-#endif /* !YY_YY_Y_TAB_HPP_INCLUDED  */
