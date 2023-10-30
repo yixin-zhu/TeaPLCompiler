@@ -925,14 +925,16 @@ case 24:
 YY_RULE_SETUP
 #line 61 "lexer.lex"
 {
+
     yylval.key=A_Pos(line,col); 
     col+=yyleng;
+     printf("* ret %d\n", yyleng);
     return RET;
 }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 66 "lexer.lex"
+#line 68 "lexer.lex"
 {
     printf("* fn\n");
     yylval.key=A_Pos(line,col);
@@ -942,7 +944,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 72 "lexer.lex"
+#line 74 "lexer.lex"
 {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
@@ -951,7 +953,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 77 "lexer.lex"
+#line 79 "lexer.lex"
 {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
@@ -960,7 +962,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 82 "lexer.lex"
+#line 84 "lexer.lex"
 {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
@@ -969,7 +971,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 87 "lexer.lex"
+#line 89 "lexer.lex"
 {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
@@ -978,7 +980,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 92 "lexer.lex"
+#line 94 "lexer.lex"
 {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
@@ -987,7 +989,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 97 "lexer.lex"
+#line 99 "lexer.lex"
 {
     printf("* struct\n");
     yylval.key=A_Pos(line,col);
@@ -998,7 +1000,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 104 "lexer.lex"
+#line 106 "lexer.lex"
 {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
@@ -1008,7 +1010,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 110 "lexer.lex"
+#line 112 "lexer.lex"
 {
     yylval.token=A_Pos(line,col);
     col+=yyleng;
@@ -1019,7 +1021,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 117 "lexer.lex"
+#line 119 "lexer.lex"
 {
     char *s = String(yytext);
     printf("* TokenID: %s\n", s);
@@ -1030,7 +1032,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 124 "lexer.lex"
+#line 126 "lexer.lex"
 {
     printf("* %d\n", calculate(yytext,yyleng));
     yylval.tokenNum = A_TokenNum(A_Pos(line,col),calculate(yytext,yyleng));
@@ -1040,7 +1042,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 130 "lexer.lex"
+#line 132 "lexer.lex"
 {
     yylval.tokenNum = A_TokenNum(A_Pos(line,col),0);
     col+=yyleng;
@@ -1049,7 +1051,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 135 "lexer.lex"
+#line 137 "lexer.lex"
 {
     col+=yyleng;
     printf("Illegal input \"%c\"\n", yytext[0]);
@@ -1057,10 +1059,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 139 "lexer.lex"
+#line 141 "lexer.lex"
 ECHO;
 	YY_BREAK
-#line 1064 "lex.yy.cpp"
+#line 1066 "lex.yy.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT1):
 case YY_STATE_EOF(COMMENT2):
@@ -2067,7 +2069,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 139 "lexer.lex"
+#line 141 "lexer.lex"
 
 
 

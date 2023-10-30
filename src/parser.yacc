@@ -152,40 +152,39 @@ PROGRAM : PROGRAMELEMENTLIST
 
 PROGRAMELEMENTLIST : PROGRAMELEMENT PROGRAMELEMENTLIST
     {
+        printf("programe 1\n");
         $$=A_ProgramElementList($1,$2);
+        printf("eof programe 1\n");
     }
-    | PROGRAMELEMENT 
+    |
     {
-        $$=A_ProgramElementList($1,NULL);
+        $$=NULL;
     }
+    
 
-PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
+PROGRAMELEMENT : VARDECLSTMT
     {
       printf("programelement 1\n");
         $$=A_ProgramVarDeclStmt($1->pos, $1);
       printf("eof programelement 1\n");
     }
-    | STRUCTDEF PROGRAMELEMENT
+    | STRUCTDEF
     {
         $$=A_ProgramStructDef($1->pos, $1);
     } 
-    | FNDECLSTMT PROGRAMELEMENT
+    | FNDECLSTMT
     {
         $$=A_ProgramFnDeclStmt($1->pos, $1);
     }
-    | FNDEF PROGRAMELEMENT
+    | FNDEF
     {
         $$=A_ProgramFnDef($1->pos, $1);
     }
-    | ';' PROGRAMELEMENT
+    | ';'
     {
       printf("programelement 5\n");
-        $$=A_ProgramNullStmt($2->pos);
+        $$=A_ProgramNullStmt($1);
       printf("eof programelement 5\n");
-    }
-    |
-    {
-        $$=NULL;
     }
 
   VARDECLSTMT : LET VARDECL ';'
@@ -237,6 +236,10 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     {
         $$=A_VarDef_Array($1->pos, $1);
     }
+    |
+    {
+        $$=NULL;
+    }
 
   VARDEFSCALAR : TOKEN_ID ':' TYPE '=' RIGHTVAL
     {
@@ -244,6 +247,7 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
         $$=A_VarDefScalar($3->pos, $1->id, $3, $5);
         printf("eof vardefscalar\n");
     }
+
   RIGHTVAL : ARITHEXPR
     {
         printf("rightval\n");
@@ -254,6 +258,8 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     {
         $$=A_BoolExprRVal($1->pos, $1);
     }
+
+
     ARITHEXPR : ARITHBIOPEXPR
     {
         $$=A_ArithBiOp_Expr($1->pos, $1);
@@ -264,29 +270,25 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
 
 
-    ARITHBIOPEXPR : ARITHEXPR AIRTHBIOP ARITHEXPR
+    ARITHBIOPEXPR : ARITHEXPR OP_PLUS ARITHEXPR
     {
-        $$=A_ArithBiOpExpr($1->pos, $2, $1, $3);
+        $$=A_ArithBiOpExpr($1->pos, A_add, $1, $3);
     }
-
-    //OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVTION 
-    AIRTHBIOP : OP_PLUS
+    |
+    ARITHEXPR OP_MINUS ARITHEXPR
     {
-        $$= A_add;
+        $$=A_ArithBiOpExpr($1->pos, A_sub, $1, $3);
     }
-    | OP_MINUS
+    |
+    ARITHEXPR OP_MULTIPLY ARITHEXPR
     {
-        $$= A_sub;
+        $$=A_ArithBiOpExpr($1->pos, A_mul, $1, $3);
     }
-    | OP_MULTIPLY
+    |
+    ARITHEXPR OP_DIVTION ARITHEXPR
     {
-        $$= A_mul;
+        $$=A_ArithBiOpExpr($1->pos, A_div, $1, $3);
     }
-    | OP_DIVTION
-    {
-        $$= A_div;
-    }
-
 
     EXPRUNIT : TOKEN_NUM 
     {
@@ -294,7 +296,9 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     }
     | TOKEN_ID
     {
+        printf("exprunit\n");
         $$=A_IdExprUnit($1->pos, $1->id);
+        printf("eof exprunit\n");
     }
     | '(' ARITHEXPR ')'
     {
@@ -362,6 +366,10 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     {
         $$=A_RightValList($1, NULL);
     }
+    |
+    {
+        $$=NULL;
+    }
 
     STRUCTDEF: STRUCT TOKEN_ID '{' VARDECLLIST '}'
     {
@@ -375,6 +383,10 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     | VARDECL
     {
         $$=A_VarDeclList($1, NULL);
+    }
+    |
+    {
+        $$=NULL;
     }
 
     VARDEFARRAY : TOKEN_ID '[' TOKEN_NUM ']' ':' TYPE '=' '{' RIGHTVALLIST '}'
@@ -391,6 +403,10 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     {
         printf("type int\n");
         $$=A_NativeType($1, A_intTypeKind);
+    }
+    |
+    {
+        $$=NULL;
     }
 
     BOOLEXPR : BOOLBIOPEXPR 
@@ -487,10 +503,16 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     {
         $$=A_ParamDecl($1);
     }
-
-    FNDEF : FNDECL CODEBLOCKSTMTLIST
+    |
     {
-        $$=A_FnDef($1->pos, $1, $2);
+        $$=NULL;
+    }
+
+    FNDEF : FNDECL '{' CODEBLOCKSTMTLIST '}'
+    {
+        printf("fndef\n");
+        $$=A_FnDef($1->pos, $1, $3);
+        printf("eof fndef\n");
     }
 
     CODEBLOCKSTMTLIST : CODEBLOCKSTMT  CODEBLOCKSTMTLIST
@@ -501,43 +523,46 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
     {
         $$=A_CodeBlockStmtList($1, NULL);
     }
+    |
+    {
+        $$=NULL;
+    }
 
-    //??? pos 从哪里来？
-    CODEBLOCKSTMT : '{' ';' '}'
+    CODEBLOCKSTMT : ';'
     {
         $$=A_BlockNullStmt($1);
     }
-    | '{' VARDECLSTMT '}'
+    | VARDECLSTMT 
     {
       printf("codeblockstmt\n");
-        $$=A_BlockVarDeclStmt($2->pos, $2);
+        $$=A_BlockVarDeclStmt($1->pos, $1);
       printf("eof codeblockstmt\n");
     }
-    | '{' ASSIGNSTMT '}'
+    |  ASSIGNSTMT 
     {
-        $$=A_BlockAssignStmt($2->pos, $2);
+        $$=A_BlockAssignStmt($1->pos, $1);
     }
-    | '{' CALLSTMT '}'
+    | CALLSTMT 
     {
-        $$=A_BlockCallStmt($2->pos, $2);
+        $$=A_BlockCallStmt($1->pos, $1);
     }
-    | '{' IFSTMT '}'
+    |  IFSTMT 
     {
-        $$=A_BlockIfStmt($2->pos, $2);
+        $$=A_BlockIfStmt($1->pos, $1);
     }
-    | '{' WHILESTMT '}'
+    |  WHILESTMT 
     {
-        $$=A_BlockWhileStmt($2->pos, $2);
+        $$=A_BlockWhileStmt($1->pos, $1);
     }
-    | '{' RETURNSTMT '}'
+    | RETURNSTMT 
     {
-        $$=A_BlockReturnStmt($2->pos, $2);
+        $$=A_BlockReturnStmt($1->pos, $1);
     }
-    | '{' CONTINUE ';' '}'
+    |  CONTINUE ';' 
     {
         $$=A_BlockContinueStmt($2);
     }
-    | '{' BREAK ';' '}'
+    | BREAK ';' 
     {
         $$=A_BlockBreakStmt($2);
     }
@@ -572,18 +597,18 @@ PROGRAMELEMENT : VARDECLSTMT PROGRAMELEMENT
         $$=A_CallStmt($1->pos, $1);
     }
 
-    IFSTMT : IF '(' BOOLEXPR ')' CODEBLOCKSTMTLIST ELSE CODEBLOCKSTMTLIST
+    IFSTMT : IF '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}' ELSE '{' CODEBLOCKSTMTLIST '}'
     {
-        $$=A_IfStmt($1, $3, $5, $7);
+        $$=A_IfStmt($1, $3, $6, $10);
     }
-    | IF '(' BOOLEXPR ')' CODEBLOCKSTMTLIST
+    | IF '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}'
     {
-        $$=A_IfStmt($1, $3, $5, NULL);
+        $$=A_IfStmt($1, $3, $6, NULL);
     }
 
-    WHILESTMT : WHILE '(' BOOLEXPR ')' CODEBLOCKSTMTLIST
+    WHILESTMT : WHILE '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}'
     {
-        $$=A_WhileStmt($1, $3, $5);
+        $$=A_WhileStmt($1, $3, $6);
     }
 %% 
 

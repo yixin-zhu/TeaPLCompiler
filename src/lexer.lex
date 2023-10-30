@@ -59,8 +59,10 @@ string String(char *s);
     return LET;
 }
 <INITIAL>"ret" {
+
     yylval.key=A_Pos(line,col); 
     col+=yyleng;
+     printf("* ret %d\n", yyleng);
     return RET;
 }
 <INITIAL>"fn" {

@@ -486,6 +486,26 @@ aA_programElement aA_ProgramElement(A_programElement programElement){
 aA_program aA_Program(A_program program){
     aA_program p = new aA_program_;
     for(A_programElementList l=program->programElements; l; l=l->tail){
+        if (l == NULL){
+            printf("## l is NULL\n");
+        } else {
+            printf("## l is not NULL\n");
+        }
+        if (l->head == NULL){
+            printf("## l head is NULL\n");
+        } else{
+            printf("## l head is not NULL\n");
+        }
+        if (p == NULL){
+            printf("## p is NULL\n");
+        } else {
+            printf("## p is not NULL\n");
+        }
+        if (p->programElements.empty()){
+            printf("## p programElements is empty\n");
+        } else {
+            printf("## p programElements is not empty\n");
+        }
         p->programElements.emplace_back(aA_ProgramElement(l->head));
     }
     return p;
