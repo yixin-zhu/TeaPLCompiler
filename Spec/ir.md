@@ -5,7 +5,7 @@
 There are three types of identifiers:   
 - temporal variables: %1, %2, ...
 - local variables: %a, %b, ...
-- global variables: @a, @b
+- global variables: @a, %b
 
 **Types**
 

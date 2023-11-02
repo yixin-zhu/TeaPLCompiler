@@ -47,18 +47,18 @@ string String(char *s);
 <INITIAL>"let" {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
-    printf("* let %d\n", yyleng);
+    //printf("* let %d\n", yyleng);
     return LET;
 }
 <INITIAL>"ret" {
 
     yylval.key=A_Pos(line,col); 
     col+=yyleng;
-     printf("* ret %d\n", yyleng);
+    // printf("* ret %d\n", yyleng);
     return RET;
 }
 <INITIAL>"fn" {
-    printf("* fn\n");
+    //printf("* fn\n");
     yylval.key=A_Pos(line,col);
     col+=yyleng;
     return FN;
@@ -89,34 +89,34 @@ string String(char *s);
     return WHILE;
 }
 <INITIAL>"struct" {
-    printf("* struct\n");
+    //printf("* struct\n");
     yylval.key=A_Pos(line,col);
     col+=yyleng;
-    printf("* struct %d %d\n", yyleng, col);
+    //printf("* struct %d %d\n", yyleng, col);
     return STRUCT;
 }
 <INITIAL>"int" {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
-    printf("* int\n");
+    //printf("* int\n");
     return INT;
 }
 <INITIAL>"("|")"|":"|"="|","|";"|"{"|"}"|"."|"!"|"["|"]" {
     yylval.token=A_Pos(line,col);
     col+=yyleng;
     c = yytext[0];
-    printf("* c: %c\n",c);
+    //printf("* c: %c\n",c);
     return(c);
 }
 <INITIAL>[a-z_A-Z][a-z_A-Z0-9]* {
     char *s = String(yytext);
-    printf("* TokenID: %s\n", s);
+    //printf("* TokenID: %s\n", s);
     yylval.tokenId = A_TokenId(A_Pos(line,col), s);
     col+=yyleng; 
     return TOKEN_ID;
 }
 <INITIAL>[1-9][0-9]* {
-    printf("* %d\n", calculate(yytext,yyleng));
+    //printf("* %d\n", calculate(yytext,yyleng));
     yylval.tokenNum = A_TokenNum(A_Pos(line,col),calculate(yytext,yyleng));
     col+=yyleng; 
     return TOKEN_NUM;
@@ -128,7 +128,7 @@ string String(char *s);
 }
 <INITIAL>. {
     col+=yyleng;
-    printf("Illegal input \"%c\"\n", yytext[0]);
+    //printf("Illegal input \"%c\"\n", yytext[0]);
 }
 %%
 
@@ -154,24 +154,3 @@ string String(char *s){
     strcpy(p,s);
     return p;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

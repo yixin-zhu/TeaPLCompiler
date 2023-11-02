@@ -1,21 +1,29 @@
-// test comment
 fn main(a:int, b:int)->int{
 let a:int;
 let b:int = 0;
 let c:MyStruct;
 c.node = 1;
-c.len = 3; // comment1
+c.len = 3*a + 4 &1;
+if (c.len >a) {
+while(1>2) {
+let a = a + 1;
+if (a <= 3) {
+b = 2;
+} else {
+if (a >1 ){
+b = a | 4;
+}
+}
+}
+}
 ret foo(c.node, c.len);
 }
 
-struct MyStruct { // comment1
+struct MyStruct {
 node:int,
-len:int  /* comment 2 */
+len:int
 }
 
-/* comment 2 */
-
 fn foo(a:int, b:int)->int{
-/* comment 2 */
 ret a+1+b+2;
 }

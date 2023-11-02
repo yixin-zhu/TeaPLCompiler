@@ -913,7 +913,7 @@ YY_RULE_SETUP
 {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
-    printf("* let %d\n", yyleng);
+    //printf("* let %d\n", yyleng);
     return LET;
 }
 	YY_BREAK
@@ -924,7 +924,7 @@ YY_RULE_SETUP
 
     yylval.key=A_Pos(line,col); 
     col+=yyleng;
-     printf("* ret %d\n", yyleng);
+    // printf("* ret %d\n", yyleng);
     return RET;
 }
 	YY_BREAK
@@ -932,7 +932,7 @@ case 26:
 YY_RULE_SETUP
 #line 60 "lexer.lex"
 {
-    printf("* fn\n");
+    //printf("* fn\n");
     yylval.key=A_Pos(line,col);
     col+=yyleng;
     return FN;
@@ -987,10 +987,10 @@ case 32:
 YY_RULE_SETUP
 #line 91 "lexer.lex"
 {
-    printf("* struct\n");
+    //printf("* struct\n");
     yylval.key=A_Pos(line,col);
     col+=yyleng;
-    printf("* struct %d %d\n", yyleng, col);
+    //printf("* struct %d %d\n", yyleng, col);
     return STRUCT;
 }
 	YY_BREAK
@@ -1000,7 +1000,7 @@ YY_RULE_SETUP
 {
     yylval.key=A_Pos(line,col);
     col+=yyleng;
-    printf("* int\n");
+    //printf("* int\n");
     return INT;
 }
 	YY_BREAK
@@ -1011,7 +1011,7 @@ YY_RULE_SETUP
     yylval.token=A_Pos(line,col);
     col+=yyleng;
     c = yytext[0];
-    printf("* c: %c\n",c);
+    //printf("* c: %c\n",c);
     return(c);
 }
 	YY_BREAK
@@ -1020,7 +1020,7 @@ YY_RULE_SETUP
 #line 111 "lexer.lex"
 {
     char *s = String(yytext);
-    printf("* TokenID: %s\n", s);
+    //printf("* TokenID: %s\n", s);
     yylval.tokenId = A_TokenId(A_Pos(line,col), s);
     col+=yyleng; 
     return TOKEN_ID;
@@ -1030,7 +1030,7 @@ case 36:
 YY_RULE_SETUP
 #line 118 "lexer.lex"
 {
-    printf("* %d\n", calculate(yytext,yyleng));
+    //printf("* %d\n", calculate(yytext,yyleng));
     yylval.tokenNum = A_TokenNum(A_Pos(line,col),calculate(yytext,yyleng));
     col+=yyleng; 
     return TOKEN_NUM;
@@ -1050,7 +1050,7 @@ YY_RULE_SETUP
 #line 129 "lexer.lex"
 {
     col+=yyleng;
-    printf("Illegal input \"%c\"\n", yytext[0]);
+    //printf("Illegal input \"%c\"\n", yytext[0]);
 }
 	YY_BREAK
 case 39:
@@ -2090,25 +2090,3 @@ string String(char *s){
     strcpy(p,s);
     return p;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

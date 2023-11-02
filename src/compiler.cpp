@@ -30,16 +30,11 @@ int main(int argc, char * argv[]) {
     freopen(argv[1], "r", stdin);  
     ofstream ASTStream;
     ASTStream.open(argv[2]);
-    printf("* Parsing...\n");
-    while(!feof(stdin)){
-        yyparse();
-    }
-    //yyparse();
-    printf("* Parsing finished.\n");
+
+    yyparse();
     aroot = aA_Program(root);
-    printf("* Printing AST...\n");
     print_aA_Program(aroot, ASTStream);
-    printf("* Printing finished.\n");
+
     ASTStream.close();
     return 0;
 }

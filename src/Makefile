@@ -10,9 +10,7 @@ LLFILES = $(patsubst $(TESTCASE_DIR)/%.tea,$(TESTCASE_DIR)/%.ast,$(TESTCASES))
 run: $(patsubst $(TESTCASE_DIR)/%.tea,$(TESTCASE_DIR)/%.ast,$(TESTCASES))
 
 $(TESTCASE_DIR)/%.ast: $(TESTCASE_DIR)/%.tea $(TESTCASE_DIR)/%.refast compiler
-	@echo "Testing 1"
 	@./compiler $< $@
-	@echo "Testing 2"
 	@diff $@ $(word 2,$^)
 	@echo PASS $*
 	@echo

@@ -2,6 +2,7 @@
 #include "TeaplaAst.h"
 
 aA_type aA_Type(A_type type){
+    if(!type) return nullptr;
     aA_type p = new aA_type_;
     p->pos = type->pos;
     p->type = type->type;
@@ -355,7 +356,7 @@ aA_fnDecl aA_FnDecl(A_fnDecl fnDecl){
     p->pos = fnDecl->pos;
     p->id = new string(fnDecl->id);
     p->paramDecl = aA_ParamDecl(fnDecl->paramDecl);
-    p->type = aA_type(fnDecl->type);
+    p->type = aA_Type(fnDecl->type);
     return p;
 }
 
@@ -459,7 +460,6 @@ aA_programElement aA_ProgramElement(A_programElement programElement){
     aA_programElement p = new aA_programElement_;
     p->pos = programElement->pos;
     p->kind = programElement->kind;
-    printf("## programElement->kind: %d\n", programElement->kind);
     switch(programElement->kind){
     case A_programNullStmtKind:{
         break;
@@ -481,35 +481,12 @@ aA_programElement aA_ProgramElement(A_programElement programElement){
         break;
     }
     }
-    printf("## eof programElement->kind: %d\n", programElement->kind);
     return p;
 }
 
 aA_program aA_Program(A_program program){
     aA_program p = new aA_program_;
     for(A_programElementList l=program->programElements; l; l=l->tail){
-        if (l == NULL){
-            printf("## l is NULL\n");
-        } else {
-            printf("## l is not NULL\n");
-        }
-        if (l->head == NULL){
-            printf("## l head is NULL\n");
-        } else{
-            printf("## l head is not NULL\n");
-        }
-        if (p == NULL){
-            printf("## p is NULL\n");
-        } else {
-            printf("## p is not NULL\n");
-        }
-        if (p->programElements.empty()){
-            printf("## p programElements is empty\n");
-        } else {
-            printf("## p programElements is not empty\n");
-        }
-        aA_programElement   tmp = aA_ProgramElement(l->head);
-        printf("## tmp is not NULL\n");
         p->programElements.emplace_back(aA_ProgramElement(l->head));
     }
     return p;

@@ -160,143 +160,6 @@ PROGRAMELEMENT: VARDECLSTMT
 }
 ;
 
-
-BOOLEXPR : BOOLEXPR OP_AND BOOLUNIT
-{
-  $$ = A_BoolBiOp_Expr($1->pos, A_BoolBiOpExpr($1->pos, A_and, $1, $3));
-}
-|BOOLEXPR OP_OR BOOLUNIT 
-{
-  $$ = A_BoolBiOp_Expr($1->pos, A_BoolBiOpExpr($1->pos, A_or, $1, $3));
-}
-| BOOLUNIT
-{
-  $$ = A_BoolExpr($1->pos, $1);
-}
-;
-
-BOOLUNIT : '(' COMEXPR ')'  
-{
-  $$ = A_ComExprUnit($1, $2);
-}
-| '(' BOOLEXPR ')' 
-{
-  $$ = A_BoolExprUnit($1, $2);
-}
-| '!' BOOLUNIT 
-{
-  $$ = A_BoolUOpExprUnit($1, A_BoolUOpExpr($1, A_not, $2));
-}
-;
-
-COMEXPR : EXPRUNIT OP_GREAT EXPRUNIT 
-{
-  $$ = A_ComExpr($1->pos, A_gt, $1, $3);
-}
-| EXPRUNIT OP_LESS EXPRUNIT 
-{
-  $$ = A_ComExpr($1->pos, A_lt, $1, $3);
-}
-| EXPRUNIT OP_GE EXPRUNIT 
-{
-  $$ = A_ComExpr($1->pos, A_ge, $1, $3);
-}
-| EXPRUNIT OP_LE EXPRUNIT 
-{
-  $$ = A_ComExpr($1->pos, A_le, $1, $3);
-}
-| EXPRUNIT OP_EQ EXPRUNIT 
-{
-  $$ = A_ComExpr($1->pos, A_eq, $1, $3);
-}
-| EXPRUNIT OP_NEQ EXPRUNIT 
-{
-  $$ = A_ComExpr($1->pos, A_ne, $1, $3);
-}
-
-ARITHEXPR: ARITHEXPR OP_PLUS ARITHEXPR
-{
-  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_add, $1, $3));
-}
-| ARITHEXPR OP_MINUS ARITHEXPR
-{
-  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_sub, $1, $3));
-}
-| ARITHEXPR OP_MULTIPLY ARITHEXPR
-{
-  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_mul, $1, $3));
-}
-| ARITHEXPR OP_DIVTION ARITHEXPR
-{
-  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_div, $1, $3));
-}
-| EXPRUNIT
-{
-  $$ = A_ExprUnit($1->pos, $1);
-}
-;
-
-EXPRUNIT : TOKEN_NUM 
-{
-    $$=A_NumExprUnit($1->pos, $1->num);
-}
-| TOKEN_ID
-{
-    // printf("exprunit\n");
-    $$=A_IdExprUnit($1->pos, $1->id);
-    // printf("eof exprunit\n");
-}
-| '(' ARITHEXPR ')'
-{
-    $$=A_ArithExprUnit($2->pos, $2);
-}
-| FNCALL
-{
-    $$=A_CallExprUnit($1->pos, $1);
-}
-| ARRAYEXPR
-{
-    $$=A_ArrayExprUnit($1->pos, $1);
-}
-| MEMBEREXPR
-{
-    $$=A_MemberExprUnit($1->pos, $1);
-}
-| ARITHUEXPR
-{
-    $$=A_ArithUExprUnit($1->pos, $1);
-}
-;
-
-ARITHUEXPR: OP_MINUS EXPRUNIT
-{
-    $$=A_ArithUExpr($2->pos, A_neg, $2);
-}
-;
-
-
-ARRAYEXPR: TOKEN_ID '[' INDEXEXPR ']'
-{
-    $$=A_ArrayExpr($1->pos, $1->id, $3);
-}
-
-INDEXEXPR: TOKEN_ID
-{
-    $$=A_IdIndexExpr($1->pos, $1->id);
-}
-| TOKEN_NUM
-{
-    $$=A_NumIndexExpr($1->pos, $1->num);
-}
-;
-
-MEMBEREXPR: TOKEN_ID '.' TOKEN_ID
-{
-    $$=A_MemberExpr($1->pos, $1->id, $3->id);
-}
-;
-
-
 RIGHTVAL : ARITHEXPR 
 {
   $$ = A_ArithExprRVal($1->pos, $1);
@@ -331,15 +194,6 @@ RIGHTVALLIST:RIGHTVAL ',' RIGHTVALLIST
   $$=A_RightValList($1, NULL);
 }
 ;
-FNCALL : TOKEN_ID '(' RIGHTVALLIST ')'
-{
-  $$ = A_FnCall($1->pos, $1->id,$3);
-}
-|TOKEN_ID '(' ')'
-{
-  $$ = A_FnCall($1->pos, $1->id, NULL);
-}
-;
 
 FNDECLSTMT : FNDECL ';'
 {
@@ -364,15 +218,7 @@ TYPE:INT
   $$ = A_StructType($1->pos, $1->id);
 }
 ;
-VARDECLLIST:VARDECL ',' VARDECLLIST
-{
-  $$ = A_VarDeclList($1, $3);
-}
-|VARDECL
-{
-  $$ = A_VarDeclList($1, NULL);
-}
-;
+
 PARAMDECL : VARDECLLIST
 {
   $$ = A_ParamDecl($1);
@@ -380,6 +226,16 @@ PARAMDECL : VARDECLLIST
 |
 {
   $$ = NULL;
+}
+;
+
+VARDECLLIST:VARDECL ',' VARDECLLIST
+{
+  $$ = A_VarDeclList($1, $3);
+}
+|VARDECL
+{
+  $$ = A_VarDeclList($1, NULL);
 }
 ;
 
@@ -423,7 +279,7 @@ VARDEF : VARDEFSCALAR
 }
 |
 {
-    $$ = NULL;
+    $$=NULL;
 }
 
 
@@ -539,7 +395,6 @@ WHILESTMT : WHILE '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}'
     $$=A_WhileStmt($1, $3, $6);
 }
 
-
 VARDECLSTMT: LET VARDECL ';'
 {
   $$ = A_VarDeclStmt($1, $2);
@@ -551,9 +406,153 @@ VARDECLSTMT: LET VARDECL ';'
 ;
 
 
+BOOLEXPR : BOOLEXPR OP_AND BOOLUNIT
+{
+  $$ = A_BoolBiOp_Expr($1->pos, A_BoolBiOpExpr($1->pos, A_and, $1, $3));
+}
+|BOOLEXPR OP_OR BOOLUNIT 
+{
+  $$ = A_BoolBiOp_Expr($1->pos, A_BoolBiOpExpr($1->pos, A_or, $1, $3));
+}
+| BOOLUNIT
+{
+  $$ = A_BoolExpr($1->pos, $1);
+}
+;
+
+BOOLUNIT : '(' COMEXPR ')'  
+{
+  $$ = A_ComExprUnit($1, $2);
+}
+| '(' BOOLEXPR ')' 
+{
+  $$ = A_BoolExprUnit($1, $2);
+}
+| '!' BOOLUNIT 
+{
+  $$ = A_BoolUOpExprUnit($1, A_BoolUOpExpr($1, A_not, $2));
+}
+;
+
+COMEXPR : EXPRUNIT OP_GREAT EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_gt, $1, $3);
+}
+| EXPRUNIT OP_LESS EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_lt, $1, $3);
+}
+| EXPRUNIT OP_GE EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_ge, $1, $3);
+}
+| EXPRUNIT OP_LE EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_le, $1, $3);
+}
+| EXPRUNIT OP_EQ EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_eq, $1, $3);
+}
+| EXPRUNIT OP_NEQ EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_ne, $1, $3);
+}
+
+ARITHEXPR: ARITHEXPR OP_PLUS ARITHEXPR
+{
+  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_add, $1, $3));
+}
+| ARITHEXPR OP_MINUS ARITHEXPR
+{
+  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_sub, $1, $3));
+}
+| ARITHEXPR OP_MULTIPLY ARITHEXPR
+{
+  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_mul, $1, $3));
+}
+| ARITHEXPR OP_DIVTION ARITHEXPR
+{
+  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_div, $1, $3));
+}
+| EXPRUNIT
+{
+  $$ = A_ExprUnit($1->pos, $1);
+}
+;
+
+EXPRUNIT : TOKEN_NUM 
+{
+    $$=A_NumExprUnit($1->pos, $1->num);
+}
+| TOKEN_ID
+{
+    // printf("exprunit\n");
+    $$=A_IdExprUnit($1->pos, $1->id);
+    // printf("eof exprunit\n");
+}
+| '(' ARITHEXPR ')'
+{
+    $$=A_ArithExprUnit($2->pos, $2);
+}
+| FNCALL
+{
+    $$=A_CallExprUnit($1->pos, $1);
+}
+| ARRAYEXPR
+{
+    $$=A_ArrayExprUnit($1->pos, $1);
+}
+| MEMBEREXPR
+{
+    $$=A_MemberExprUnit($1->pos, $1);
+}
+| ARITHUEXPR
+{
+    $$=A_ArithUExprUnit($1->pos, $1);
+}
+;
+
 STRUCTDEF: STRUCT TOKEN_ID '{' VARDECLLIST '}'
 {
   $$ = A_StructDef($2->pos, $2->id, $4);
+}
+;
+
+FNCALL : TOKEN_ID '(' RIGHTVALLIST ')'
+{
+  $$ = A_FnCall($1->pos, $1->id,$3);
+}
+|TOKEN_ID '(' ')'
+{
+  $$ = A_FnCall($1->pos, $1->id, NULL);
+}
+;
+
+ARITHUEXPR: OP_MINUS EXPRUNIT
+{
+    $$=A_ArithUExpr($2->pos, A_neg, $2);
+}
+;
+
+ARRAYEXPR: TOKEN_ID '[' INDEXEXPR ']'
+{
+    $$=A_ArrayExpr($1->pos, $1->id, $3);
+}
+
+INDEXEXPR: TOKEN_ID
+{
+    $$=A_IdIndexExpr($1->pos, $1->id);
+}
+| TOKEN_NUM
+{
+    $$=A_NumIndexExpr($1->pos, $1->num);
+}
+;
+
+MEMBEREXPR: TOKEN_ID '.' TOKEN_ID
+{
+    $$=A_MemberExpr($1->pos, $1->id, $3->id);
 }
 ;
 
