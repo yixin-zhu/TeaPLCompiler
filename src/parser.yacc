@@ -18,10 +18,8 @@ extern int  yywrap();
 %union
 {
 
-    A_pos token;
-    A_pos key;
-    A_pos id;
-    A_pos pos;
+    A_pos           token;
+    A_pos           key;
     A_varDecl       varDecl;
     A_varDef        varDef;
     A_rightVal      rightVal;
@@ -57,27 +55,21 @@ extern int  yywrap();
     A_fnDeclStmt    fnDeclStmt;
     A_callStmt      callStmt;
     A_returnStmt    returnStmt;
-    A_programElement        programElement;
-    A_codeBlockStmtList     codeBlockStmtList;
-    A_programElementList    programElementList;
     A_program       program;
     A_tokenId       tokenId;
     A_tokenNum      tokenNum;
     A_type          type;
-    A_arithBiOp     arithBiOp;
-    A_arithUOp      arithUOp;
     A_nativeType    ntype;
-    A_boolBiOp      boolBiOp;
-    A_comOp         comOp;
-    A_boolUOp       boolUOp;
+    A_programElement        programElement;
+    A_codeBlockStmtList     codeBlockStmtList;
+    A_programElementList    programElementList;
 }
 
 // 终结符的类
 %token <token> OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVTION OP_LESS OP_LE OP_GREAT OP_GE OP_EQ OP_NEQ OP_OR OP_AND '(' ')' '=' ',' ';' '{' '}' '.'  '[' ']' '!' OP_ARROW
-%token <key> LET RET FN STRUCT
+%token <key> LET RET FN STRUCT CONTINUE BREAK IF ELSE WHILE INT
 %token <tokenId> TOKEN_ID
 %token <tokenNum> TOKEN_NUM
-%token <key> CONTINUE BREAK IF ELSE WHILE INT
 
 
 // 非终结符的类
@@ -101,9 +93,7 @@ extern int  yywrap();
 %type <boolExpr>            BOOLEXPR
 %type <arithBiOpExpr>       ARITHBIOPEXPR
 %type <exprUnit>            EXPRUNIT
-%type <arithBiOp>           AIRTHBIOP
-%type <arithUOp>            ARITHUOP
-%type <fnCall>              FN_CALL
+%type <fnCall>              FNCALL
 %type <rightValList>        RIGHTVALLIST
 %type <arrayExpr>           ARRAYEXPR
 %type <indexExpr>           INDEXEXPR
@@ -111,15 +101,12 @@ extern int  yywrap();
 %type <arithUExpr>          ARITHUEXPR
 %type <varDeclList>         VARDECLLIST
 %type <boolBiOpExpr>        BOOLBIOPEXPR
-%type <boolBiOp>            BOOLBIOP
-%type <comOp>               COMOP
 %type <boolUnit>            BOOLUNIT
 %type <boolUOpExpr>         BOOLUOPEXPR
-%type <comExpr>             COMPEXPR
-%type <boolUOp>             BOOLUOP
+%type <comExpr>             COMEXPR
 %type <paramDecl>           PARAMDECL
 %type <codeBlockStmt>       CODEBLOCKSTMT
-%type <codeBlockStmtList>   CODEBLOCKSTMTLIST
+%type <codeBlockStmtList>   CODEBLOCKSTMTLIST CODEBLOCK
 %type <assignStmt>          ASSIGNSTMT
 %type <callStmt>            CALLSTMT
 %type <returnStmt>          RETURNSTMT
@@ -128,490 +115,449 @@ extern int  yywrap();
 %type <leftVal>             LEFTVAL
 
 
-%right '='
-%left OP_OR
-%left OP_AND
-%left OP_EQ OP_NEQ
-%left OP_LE OP_LESS OP_GREAT OP_GE
 %left OP_PLUS OP_MINUS
 %left OP_MULTIPLY OP_DIVTION
-%right '!' UMINUS
-%left '[' ']' '(' ')'
-%left '.'
-%left ';'
-%right ELSE
 
 %start PROGRAM
 %%
 
-PROGRAM : PROGRAMELEMENTLIST
-    {
-        root=A_program($1);
-        $$=root;
-    }
+PROGRAM: PROGRAMELEMENTLIST 
+{  
+  root = A_Program($1);
+  $$ = A_Program($1);
+}
+;
 
-PROGRAMELEMENTLIST : PROGRAMELEMENT PROGRAMELEMENTLIST
-    {
-        printf("programe 1\n");
-        $$=A_ProgramElementList($1,$2);
-        printf("eof programe 1\n");
-    }
-    |
-    {
-        $$=NULL;
-    }
-    
+PROGRAMELEMENTLIST: PROGRAMELEMENT PROGRAMELEMENTLIST
+{
+  $$ = A_ProgramElementList($1, $2);
+}
+|
+{
+  $$ = NULL;
+}
+;
 
-PROGRAMELEMENT : VARDECLSTMT
-    {
-      printf("programelement 1\n");
-        $$=A_ProgramVarDeclStmt($1->pos, $1);
-      printf("eof programelement 1\n");
-    }
-    | STRUCTDEF
-    {
-        $$=A_ProgramStructDef($1->pos, $1);
-    } 
-    | FNDECLSTMT
-    {
-        $$=A_ProgramFnDeclStmt($1->pos, $1);
-    }
-    | FNDEF
-    {
-        $$=A_ProgramFnDef($1->pos, $1);
-    }
-    | ';'
-    {
-      printf("programelement 5\n");
-        $$=A_ProgramNullStmt($1);
-      printf("eof programelement 5\n");
-    }
-
-  VARDECLSTMT : LET VARDECL ';'
-    {   
-        printf("vardeclstmt 1\n");
-        printf("pos %d\n", $2->pos->line);
-        $$=A_VarDeclStmt($1, $2);
-        printf("eof vardeclstmt 1\n");
-    }
-    | LET VARDEF ';'
-    {
-        printf("vardeclstmt 2\n");
-        printf("pos %d\n", $2->pos->line);
-        $$=A_VarDefStmt($2->pos, $2);
-        printf("eof vardeclstmt 2\n");
-    }
-
-  VARDECL : VARDECLSCALAR
-    {
-        printf("vardecl\n");
-        printf("pos %d\n", $1->pos->line);
-        $$=A_VarDecl_Scalar($1->pos, $1);
-        printf("eof vardecl\n");
-    }
-    | VARDECLARRAY
-    {
-        $$=A_VarDecl_Array($1->pos, $1);
-    }
-
-  VARDECLSCALAR : TOKEN_ID ':' TYPE
-    {
-      printf("vardeclscalar\n");
-        $$=A_VarDeclScalar($1->pos, $1->id, $3);
-      printf("eof vardeclscalar\n");
-    }
-  
-  VARDECLARRAY : TOKEN_ID '[' TOKEN_NUM ']' ':' TYPE
-    {
-        $$=A_VarDeclArray($1->pos, $1->id, $3->num, $6);
-    }
-
-  VARDEF : VARDEFSCALAR
-    {
-        printf("vardef\n");
-        $$=A_VarDef_Scalar($1->pos, $1);
-        printf("eof vardef\n");
-    }
-    | VARDEFARRAY
-    {
-        $$=A_VarDef_Array($1->pos, $1);
-    }
-    |
-    {
-        $$=NULL;
-    }
-
-  VARDEFSCALAR : TOKEN_ID ':' TYPE '=' RIGHTVAL
-    {
-        printf("vardefscalar\n");
-        $$=A_VarDefScalar($3->pos, $1->id, $3, $5);
-        printf("eof vardefscalar\n");
-    }
-
-  RIGHTVAL : ARITHEXPR
-    {
-        printf("rightval\n");
-        $$=A_ArithExprRVal($1->pos, $1);
-        printf("eof rightval\n");
-    }
-    | BOOLEXPR
-    {
-        $$=A_BoolExprRVal($1->pos, $1);
-    }
+PROGRAMELEMENT: VARDECLSTMT
+{
+  $$ = A_ProgramVarDeclStmt($1->pos, $1);
+}
+| STRUCTDEF
+{
+  $$ = A_ProgramStructDef($1->pos, $1);
+}
+| FNDECLSTMT
+{
+  $$ = A_ProgramFnDeclStmt($1->pos, $1);
+}
+| FNDEF
+{
+  $$ = A_ProgramFnDef($1->pos, $1);
+}
+| ';'
+{
+  $$ = A_ProgramNullStmt($1);
+}
+;
 
 
-    ARITHEXPR : ARITHBIOPEXPR
-    {
-        $$=A_ArithBiOp_Expr($1->pos, $1);
-    }
-    | EXPRUNIT
-    {
-        $$=A_ExprUnit($1->pos, $1);
-    }
+BOOLEXPR : BOOLEXPR OP_AND BOOLUNIT
+{
+  $$ = A_BoolBiOp_Expr($1->pos, A_BoolBiOpExpr($1->pos, A_and, $1, $3));
+}
+|BOOLEXPR OP_OR BOOLUNIT 
+{
+  $$ = A_BoolBiOp_Expr($1->pos, A_BoolBiOpExpr($1->pos, A_or, $1, $3));
+}
+| BOOLUNIT
+{
+  $$ = A_BoolExpr($1->pos, $1);
+}
+;
+
+BOOLUNIT : '(' COMEXPR ')'  
+{
+  $$ = A_ComExprUnit($1, $2);
+}
+| '(' BOOLEXPR ')' 
+{
+  $$ = A_BoolExprUnit($1, $2);
+}
+| '!' BOOLUNIT 
+{
+  $$ = A_BoolUOpExprUnit($1, A_BoolUOpExpr($1, A_not, $2));
+}
+;
+
+COMEXPR : EXPRUNIT OP_GREAT EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_gt, $1, $3);
+}
+| EXPRUNIT OP_LESS EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_lt, $1, $3);
+}
+| EXPRUNIT OP_GE EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_ge, $1, $3);
+}
+| EXPRUNIT OP_LE EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_le, $1, $3);
+}
+| EXPRUNIT OP_EQ EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_eq, $1, $3);
+}
+| EXPRUNIT OP_NEQ EXPRUNIT 
+{
+  $$ = A_ComExpr($1->pos, A_ne, $1, $3);
+}
+
+ARITHEXPR: ARITHEXPR OP_PLUS ARITHEXPR
+{
+  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_add, $1, $3));
+}
+| ARITHEXPR OP_MINUS ARITHEXPR
+{
+  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_sub, $1, $3));
+}
+| ARITHEXPR OP_MULTIPLY ARITHEXPR
+{
+  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_mul, $1, $3));
+}
+| ARITHEXPR OP_DIVTION ARITHEXPR
+{
+  $$ = A_ArithBiOp_Expr($1->pos, A_ArithBiOpExpr($1->pos, A_div, $1, $3));
+}
+| EXPRUNIT
+{
+  $$ = A_ExprUnit($1->pos, $1);
+}
+;
+
+EXPRUNIT : TOKEN_NUM 
+{
+    $$=A_NumExprUnit($1->pos, $1->num);
+}
+| TOKEN_ID
+{
+    // printf("exprunit\n");
+    $$=A_IdExprUnit($1->pos, $1->id);
+    // printf("eof exprunit\n");
+}
+| '(' ARITHEXPR ')'
+{
+    $$=A_ArithExprUnit($2->pos, $2);
+}
+| FNCALL
+{
+    $$=A_CallExprUnit($1->pos, $1);
+}
+| ARRAYEXPR
+{
+    $$=A_ArrayExprUnit($1->pos, $1);
+}
+| MEMBEREXPR
+{
+    $$=A_MemberExprUnit($1->pos, $1);
+}
+| ARITHUEXPR
+{
+    $$=A_ArithUExprUnit($1->pos, $1);
+}
+;
+
+ARITHUEXPR: OP_MINUS EXPRUNIT
+{
+    $$=A_ArithUExpr($2->pos, A_neg, $2);
+}
+;
 
 
-    ARITHBIOPEXPR : ARITHEXPR OP_PLUS ARITHEXPR
-    {
-        $$=A_ArithBiOpExpr($1->pos, A_add, $1, $3);
-    }
-    |
-    ARITHEXPR OP_MINUS ARITHEXPR
-    {
-        $$=A_ArithBiOpExpr($1->pos, A_sub, $1, $3);
-    }
-    |
-    ARITHEXPR OP_MULTIPLY ARITHEXPR
-    {
-        $$=A_ArithBiOpExpr($1->pos, A_mul, $1, $3);
-    }
-    |
-    ARITHEXPR OP_DIVTION ARITHEXPR
-    {
-        $$=A_ArithBiOpExpr($1->pos, A_div, $1, $3);
-    }
+ARRAYEXPR: TOKEN_ID '[' INDEXEXPR ']'
+{
+    $$=A_ArrayExpr($1->pos, $1->id, $3);
+}
 
-    EXPRUNIT : TOKEN_NUM 
-    {
-        $$=A_NumExprUnit($1->pos, $1->num);
-    }
-    | TOKEN_ID
-    {
-        printf("exprunit\n");
-        $$=A_IdExprUnit($1->pos, $1->id);
-        printf("eof exprunit\n");
-    }
-    | '(' ARITHEXPR ')'
-    {
-        $$=A_ArithExprUnit($2->pos, $2);
-    }
-    | FN_CALL
-    {
-        $$=A_CallExprUnit($1->pos, $1);
-    }
-    | ARRAYEXPR
-    {
-        $$=A_ArrayExprUnit($1->pos, $1);
-    }
-    | MEMBEREXPR
-    {
-        $$=A_MemberExprUnit($1->pos, $1);
-    }
-    | ARITHUEXPR
-    {
-        $$=A_ArithUExprUnit($1->pos, $1);
-    }
+INDEXEXPR: TOKEN_ID
+{
+    $$=A_IdIndexExpr($1->pos, $1->id);
+}
+| TOKEN_NUM
+{
+    $$=A_NumIndexExpr($1->pos, $1->num);
+}
+;
 
-    ARITHUEXPR: ARITHUOP EXPRUNIT
-    {
-        $$=A_ArithUExpr($2->pos, $1, $2);
-    }
+MEMBEREXPR: TOKEN_ID '.' TOKEN_ID
+{
+    $$=A_MemberExpr($1->pos, $1->id, $3->id);
+}
+;
 
 
-    ARRAYEXPR: TOKEN_ID '[' INDEXEXPR ']'
-    {
-        $$=A_ArrayExpr($1->pos, $1->id, $3);
-    }
-    
-    INDEXEXPR: TOKEN_ID
-    {
-        $$=A_IdIndexExpr($1->pos, $1->id);
-    }
-    | TOKEN_NUM
-    {
-        $$=A_NumIndexExpr($1->pos, $1->num);
-    }
+RIGHTVAL : ARITHEXPR 
+{
+  $$ = A_ArithExprRVal($1->pos, $1);
+}
+| BOOLEXPR
+{
+  $$ = A_BoolExprRVal($1->pos, $1);
+}
+;
 
-    MEMBEREXPR: TOKEN_ID '.' TOKEN_ID
-    {
-        $$=A_MemberExpr($1->pos, $1->id, $3->id);
-    }
-    
+LEFTVAL : TOKEN_ID
+{
+    //printf("tokenid\n");
+    $$=A_IdExprLVal($1->pos, $1->id);
+}
+| ARRAYEXPR
+{
+    $$=A_ArrExprLVal($1->pos, $1);
+}
+| MEMBEREXPR
+{
+    $$=A_MemberExprLVal($1->pos, $1);
+}
+;
 
-    ARITHUOP : OP_MINUS %prec UMINUS
-    {
-        $$=A_neg;
-    }
+RIGHTVALLIST:RIGHTVAL ',' RIGHTVALLIST
+{
+  $$=A_RightValList($1, $3);
+}
+|RIGHTVAL
+{
+  $$=A_RightValList($1, NULL);
+}
+;
+FNCALL : TOKEN_ID '(' RIGHTVALLIST ')'
+{
+  $$ = A_FnCall($1->pos, $1->id,$3);
+}
+|TOKEN_ID '(' ')'
+{
+  $$ = A_FnCall($1->pos, $1->id, NULL);
+}
+;
 
-    FN_CALL : TOKEN_ID '(' RIGHTVALLIST ')'
-    {
-        $$=A_FnCall($1->pos, $1->id, $3);
-    }
+FNDECLSTMT : FNDECL ';'
+{
+  $$ = A_FnDeclStmt($1->pos, $1);
+}
+;
+FNDECL : FN TOKEN_ID '(' PARAMDECL ')' 
+{
+  $$ = A_FnDecl($1, $2->id, $4, A_NativeType($1, A_intTypeKind));
+}
+| FN TOKEN_ID '(' PARAMDECL ')' OP_ARROW TYPE 
+{
+  $$ = A_FnDecl($1, $2->id, $4, $7);
+}
+;
+TYPE:INT
+{
+  $$ = A_NativeType($1, A_intTypeKind);
+}
+|TOKEN_ID
+{
+  $$ = A_StructType($1->pos, $1->id);
+}
+;
+VARDECLLIST:VARDECL ',' VARDECLLIST
+{
+  $$ = A_VarDeclList($1, $3);
+}
+|VARDECL
+{
+  $$ = A_VarDeclList($1, NULL);
+}
+;
+PARAMDECL : VARDECLLIST
+{
+  $$ = A_ParamDecl($1);
+}
+|
+{
+  $$ = NULL;
+}
+;
+
+VARDECL : VARDECLSCALAR
+{
+    $$=A_VarDecl_Scalar($1->pos, $1);
+}
+| VARDECLARRAY
+{
+    $$=A_VarDecl_Array($1->pos, $1);
+}
+;
+
+VARDECLSCALAR : TOKEN_ID ':' TYPE
+{
+    $$=A_VarDeclScalar($1->pos, $1->id, $3);
+}
+| TOKEN_ID
+{
+    $$=A_VarDeclScalar($1->pos, $1->id, NULL);
+}
+;
+
+VARDECLARRAY : TOKEN_ID '[' TOKEN_NUM ']' ':' TYPE
+{
+    $$=A_VarDeclArray($1->pos, $1->id, $3->num, $6);
+}
+| TOKEN_ID '[' TOKEN_NUM ']'
+{
+    $$=A_VarDeclArray($1->pos, $1->id, $3->num, NULL);
+}
+;
+
+VARDEF : VARDEFSCALAR
+{
+    $$=A_VarDef_Scalar($1->pos, $1);
+}
+| VARDEFARRAY
+{
+    $$=A_VarDef_Array($1->pos, $1);
+}
+|
+{
+    $$ = NULL;
+}
 
 
-    RIGHTVALLIST : RIGHTVAL ',' RIGHTVALLIST
-    {
-        $$=A_RightValList($1, $3);
-    }
-    | RIGHTVAL
-    {
-        $$=A_RightValList($1, NULL);
-    }
-    |
-    {
-        $$=NULL;
-    }
+VARDEFARRAY : TOKEN_ID '[' TOKEN_NUM ']' ':' TYPE '=' '{' RIGHTVALLIST '}'
+{
+    $$=A_VarDefArray($1->pos, $1->id, $3->num, $6, $9);
+}
+| TOKEN_ID '[' TOKEN_NUM ']' '=' '{' RIGHTVALLIST '}'
+{
+    $$=A_VarDefArray($1->pos, $1->id, $3->num, A_NativeType($1->pos, A_intTypeKind) , $7);
+}
+;
 
-    STRUCTDEF: STRUCT TOKEN_ID '{' VARDECLLIST '}'
-    {
-        $$=A_StructDef($2->pos, $2->id, $4);
-    }
+VARDEFSCALAR : TOKEN_ID ':' TYPE '=' RIGHTVAL
+{
+    //printf("vardefscalar\n");
+    $$=A_VarDefScalar($3->pos, $1->id, $3, $5);
+    //printf("eof vardefscalar\n");
+}
+| TOKEN_ID '=' RIGHTVAL
+{
+    $$=A_VarDefScalar($1->pos, $1->id, A_NativeType($1->pos, A_intTypeKind), $3);
+}
+;
 
-    VARDECLLIST : VARDECL ',' VARDECLLIST
-    {
-        $$=A_VarDeclList($1, $3);
-    }
-    | VARDECL
-    {
-        $$=A_VarDeclList($1, NULL);
-    }
-    |
-    {
-        $$=NULL;
-    }
 
-    VARDEFARRAY : TOKEN_ID '[' TOKEN_NUM ']' ':' TYPE '=' '{' RIGHTVALLIST '}'
-    {
-        $$=A_VarDefArray($1->pos, $1->id, $3->num, $6, $9);
-    }
+FNDEF : FNDECL CODEBLOCK
+{
+  $$ = A_FnDef($1->pos, $1, $2);
+}  
+;
 
-    TYPE : TOKEN_ID
-    {
-        printf("type %s\n", $1->id);
-        $$=A_StructType($1->pos, $1->id);
-    }
-    | INT
-    {
-        printf("type int\n");
-        $$=A_NativeType($1, A_intTypeKind);
-    }
-    |
-    {
-        $$=NULL;
-    }
+CODEBLOCK : '{' CODEBLOCKSTMTLIST '}'
+{
+  $$ = $2;
+} 
+;
+CODEBLOCKSTMTLIST:CODEBLOCKSTMT CODEBLOCKSTMTLIST
+{
+  $$ = A_CodeBlockStmtList($1, $2);
+}
+|CODEBLOCKSTMT
+{
+  $$ = A_CodeBlockStmtList($1, NULL);
+}
+;
 
-    BOOLEXPR : BOOLBIOPEXPR 
-    {
-        $$=A_BoolBiOp_Expr($1->pos, $1);
-    }
-    | BOOLUNIT
-    {
-        $$=A_BoolExpr($1->pos, $1);
-    }
+CODEBLOCKSTMT : ';'
+{
+    $$=A_BlockNullStmt($1);
+}
+| VARDECLSTMT 
+{
+    $$=A_BlockVarDeclStmt($1->pos, $1);
+}
+|  ASSIGNSTMT 
+{
+    $$=A_BlockAssignStmt($1->pos, $1);
+}
+| CALLSTMT 
+{
+    $$=A_BlockCallStmt($1->pos, $1);
+}
+|  IFSTMT 
+{
+    $$=A_BlockIfStmt($1->pos, $1);
+}
+|  WHILESTMT 
+{
+    $$=A_BlockWhileStmt($1->pos, $1);
+}
+| RETURNSTMT 
+{
+    $$=A_BlockReturnStmt($1->pos, $1);
+}
+|  CONTINUE ';' 
+{
+    $$=A_BlockContinueStmt($2);
+}
+| BREAK ';' 
+{
+    $$=A_BlockBreakStmt($2);
+}
+;
 
-    BOOLBIOPEXPR :BOOLEXPR BOOLBIOP BOOLUNIT
-    {
-        $$=A_BoolBiOpExpr($1->pos, $2, $1, $3);
-    }
-  
-    BOOLBIOP : OP_AND
-    {
-        $$=A_and;
-    }
-    | OP_OR
-    {
-        $$=A_or;
-    }
+RETURNSTMT : RET RIGHTVAL ';'
+{
+    $$=A_ReturnStmt($1, $2);
+}
 
-    BOOLUNIT : COMPEXPR
-    {
-        $$=A_ComExprUnit($1->pos, $1);
-    }
-    | BOOLEXPR
-    {
-        $$=A_BoolExprUnit($1->pos, $1);
-    }
-    | BOOLUOPEXPR
-    {
-        $$=A_BoolUOpExprUnit($1->pos, $1);
-    }
+ASSIGNSTMT : LEFTVAL '=' RIGHTVAL ';'
+{
+    // printf("assignstmt\n");
+    $$=A_AssignStmt($1->pos, $1, $3);
+}
 
-    COMPEXPR : EXPRUNIT COMOP EXPRUNIT
-    {
-        $$=A_ComExpr($1->pos, $2, $1, $3);
-    }
+CALLSTMT : FNCALL ';'
+{
+    $$=A_CallStmt($1->pos, $1);
+}
 
-    COMOP : OP_EQ
-    {
-        $$=A_eq;
-    }
-    | OP_NEQ
-    {
-        $$=A_ne;
-    }
-    | OP_LE
-    {
-        $$=A_le;
-    }
-    | OP_LESS
-    {
-        $$=A_lt;
-    }
-    | OP_GREAT
-    {
-        $$=A_gt;
-    }
-    | OP_GE
-    {
-        $$=A_ge;
-    }
+IFSTMT : IF '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}' ELSE '{' CODEBLOCKSTMTLIST '}'
+{
+    $$=A_IfStmt($1, $3, $6, $10);
+}
+| IF '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}'
+{
+    $$=A_IfStmt($1, $3, $6, NULL);
+}
 
-    BOOLUOPEXPR : BOOLUOP BOOLUNIT
-    {
-        $$=A_BoolUOpExpr($2->pos, $1, $2);
-    }
+WHILESTMT : WHILE '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}'
+{
+    $$=A_WhileStmt($1, $3, $6);
+}
 
-    BOOLUOP : '!'
-    {
-        $$=A_not;
-    }
 
-    FNDECLSTMT : FNDECL ';'
-    {
-        $$=A_FnDeclStmt($1->pos, $1);
-    }
+VARDECLSTMT: LET VARDECL ';'
+{
+  $$ = A_VarDeclStmt($1, $2);
+}
+| LET VARDEF ';'
+{
+  $$ = A_VarDefStmt($1,  $2);
+}
+;
 
-    FNDECL : FN TOKEN_ID '(' PARAMDECL ')' 
-    {
-        $$=A_FnDecl($1, $2->id, $4, NULL);
-    }
-    | FN TOKEN_ID '(' PARAMDECL ')' OP_ARROW TYPE
-    {
-        $$=A_FnDecl($1, $2->id, $4, $7);
-    }
 
-    PARAMDECL : VARDECLLIST 
-    {
-        $$=A_ParamDecl($1);
-    }
-    |
-    {
-        $$=NULL;
-    }
+STRUCTDEF: STRUCT TOKEN_ID '{' VARDECLLIST '}'
+{
+  $$ = A_StructDef($2->pos, $2->id, $4);
+}
+;
 
-    FNDEF : FNDECL '{' CODEBLOCKSTMTLIST '}'
-    {
-        printf("fndef\n");
-        $$=A_FnDef($1->pos, $1, $3);
-        printf("eof fndef\n");
-    }
-
-    CODEBLOCKSTMTLIST : CODEBLOCKSTMT  CODEBLOCKSTMTLIST
-    {
-        $$=A_CodeBlockStmtList($1, $2);
-    }
-    | CODEBLOCKSTMT
-    {
-        $$=A_CodeBlockStmtList($1, NULL);
-    }
-    |
-    {
-        $$=NULL;
-    }
-
-    CODEBLOCKSTMT : ';'
-    {
-        $$=A_BlockNullStmt($1);
-    }
-    | VARDECLSTMT 
-    {
-      printf("codeblockstmt\n");
-        $$=A_BlockVarDeclStmt($1->pos, $1);
-      printf("eof codeblockstmt\n");
-    }
-    |  ASSIGNSTMT 
-    {
-        $$=A_BlockAssignStmt($1->pos, $1);
-    }
-    | CALLSTMT 
-    {
-        $$=A_BlockCallStmt($1->pos, $1);
-    }
-    |  IFSTMT 
-    {
-        $$=A_BlockIfStmt($1->pos, $1);
-    }
-    |  WHILESTMT 
-    {
-        $$=A_BlockWhileStmt($1->pos, $1);
-    }
-    | RETURNSTMT 
-    {
-        $$=A_BlockReturnStmt($1->pos, $1);
-    }
-    |  CONTINUE ';' 
-    {
-        $$=A_BlockContinueStmt($2);
-    }
-    | BREAK ';' 
-    {
-        $$=A_BlockBreakStmt($2);
-    }
-
-    RETURNSTMT : RET RIGHTVAL ';'
-    {
-        $$=A_ReturnStmt($1, $2);
-    }
-
-    ASSIGNSTMT : LEFTVAL '=' RIGHTVAL ';'
-    {
-      printf("assignstmt\n");
-        $$=A_AssignStmt($1->pos, $1, $3);
-    }
-
-    LEFTVAL : TOKEN_ID
-    {
-        printf("tokenid\n");
-        $$=A_IdExprLVal($1->pos, $1->id);
-    }
-    | ARRAYEXPR
-    {
-        $$=A_ArrExprLVal($1->pos, $1);
-    }
-    | MEMBEREXPR
-    {
-        $$=A_MemberExprLVal($1->pos, $1);
-    }
-
-    CALLSTMT : FN_CALL ';'
-    {
-        $$=A_CallStmt($1->pos, $1);
-    }
-
-    IFSTMT : IF '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}' ELSE '{' CODEBLOCKSTMTLIST '}'
-    {
-        $$=A_IfStmt($1, $3, $6, $10);
-    }
-    | IF '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}'
-    {
-        $$=A_IfStmt($1, $3, $6, NULL);
-    }
-
-    WHILESTMT : WHILE '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}'
-    {
-        $$=A_WhileStmt($1, $3, $6);
-    }
-%% 
-
+%%
 
 extern "C"{
 void yyerror(char * s)
@@ -620,7 +566,6 @@ void yyerror(char * s)
 }
 int yywrap()
 {
-  printf("yywrap\n");
   return(1);
 }
 }

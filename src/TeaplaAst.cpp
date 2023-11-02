@@ -459,6 +459,7 @@ aA_programElement aA_ProgramElement(A_programElement programElement){
     aA_programElement p = new aA_programElement_;
     p->pos = programElement->pos;
     p->kind = programElement->kind;
+    printf("## programElement->kind: %d\n", programElement->kind);
     switch(programElement->kind){
     case A_programNullStmtKind:{
         break;
@@ -480,6 +481,7 @@ aA_programElement aA_ProgramElement(A_programElement programElement){
         break;
     }
     }
+    printf("## eof programElement->kind: %d\n", programElement->kind);
     return p;
 }
 
@@ -506,6 +508,8 @@ aA_program aA_Program(A_program program){
         } else {
             printf("## p programElements is not empty\n");
         }
+        aA_programElement   tmp = aA_ProgramElement(l->head);
+        printf("## tmp is not NULL\n");
         p->programElements.emplace_back(aA_ProgramElement(l->head));
     }
     return p;

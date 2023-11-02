@@ -66,15 +66,14 @@ extern int yydebug;
     RET = 272,
     FN = 273,
     STRUCT = 274,
-    TOKEN_ID = 275,
-    TOKEN_NUM = 276,
-    CONTINUE = 277,
-    BREAK = 278,
-    IF = 279,
-    ELSE = 280,
-    WHILE = 281,
-    INT = 282,
-    UMINUS = 283
+    CONTINUE = 275,
+    BREAK = 276,
+    IF = 277,
+    ELSE = 278,
+    WHILE = 279,
+    INT = 280,
+    TOKEN_ID = 281,
+    TOKEN_NUM = 282
   };
 #endif
 /* Tokens.  */
@@ -95,15 +94,14 @@ extern int yydebug;
 #define RET 272
 #define FN 273
 #define STRUCT 274
-#define TOKEN_ID 275
-#define TOKEN_NUM 276
-#define CONTINUE 277
-#define BREAK 278
-#define IF 279
-#define ELSE 280
-#define WHILE 281
-#define INT 282
-#define UMINUS 283
+#define CONTINUE 275
+#define BREAK 276
+#define IF 277
+#define ELSE 278
+#define WHILE 279
+#define INT 280
+#define TOKEN_ID 281
+#define TOKEN_NUM 282
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -112,10 +110,8 @@ union YYSTYPE
 #line 19 "parser.yacc"
 
 
-    A_pos token;
-    A_pos key;
-    A_pos id;
-    A_pos pos;
+    A_pos           token;
+    A_pos           key;
     A_varDecl       varDecl;
     A_varDef        varDef;
     A_rightVal      rightVal;
@@ -151,21 +147,16 @@ union YYSTYPE
     A_fnDeclStmt    fnDeclStmt;
     A_callStmt      callStmt;
     A_returnStmt    returnStmt;
-    A_programElement        programElement;
-    A_codeBlockStmtList     codeBlockStmtList;
-    A_programElementList    programElementList;
     A_program       program;
     A_tokenId       tokenId;
     A_tokenNum      tokenNum;
     A_type          type;
-    A_arithBiOp     arithBiOp;
-    A_arithUOp      arithUOp;
     A_nativeType    ntype;
-    A_boolBiOp      boolBiOp;
-    A_comOp         comOp;
-    A_boolUOp       boolUOp;
+    A_programElement        programElement;
+    A_codeBlockStmtList     codeBlockStmtList;
+    A_programElementList    programElementList;
 
-#line 169 "y.tab.hpp"
+#line 160 "y.tab.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

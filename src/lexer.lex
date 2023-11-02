@@ -16,28 +16,20 @@ string String(char *s);
 
 %start COMMENT1  COMMENT2
 %%
-<COMMENT1>"\n" {++line;col=1;BEGIN INITIAL;}
+<COMMENT1>"\n" {++line;col=0;BEGIN INITIAL;}
 <COMMENT1>. {col+=yyleng;}
 
 <COMMENT2>"*/" {col+=yyleng;BEGIN INITIAL;}
-<COMMENT2>"\n" {++line;col=1;}
+<COMMENT2>"\n" {++line;col=0;}
 <COMMENT2>. {col+=yyleng;}
 
 <INITIAL>"//" {col+=yyleng;BEGIN COMMENT1;}
 <INITIAL>"/*" {col+=yyleng;BEGIN COMMENT2;}
-<INITIAL>"\n" {
-    printf("* new line\n");
-    ++line;
-    col=1;
-}
-<INITIAL>" "|"\r"|"\t" {
-    printf("* blank %d\n", yyleng);
-    col+=yyleng;
-}
+<INITIAL>"\n" {++line;col=0;}
+<INITIAL>" "|"\r" {col+=yyleng;}
+<INITIAL>" "|"\t" {col+=4;}
 
-<INITIAL>"->" {
-    printf("* ->\n");
-    yylval.token = A_Pos(line,col); col+=yyleng; return OP_ARROW; }
+<INITIAL>"->" {yylval.token = A_Pos(line,col); col+=yyleng; return OP_ARROW; }
 <INITIAL>"+" {yylval.token = A_Pos(line,col); col+=yyleng; return OP_PLUS; }
 <INITIAL>"-" {yylval.token = A_Pos(line,col); col+=yyleng; return OP_MINUS;}
 <INITIAL>"*" {yylval.token = A_Pos(line,col); col+=yyleng; return OP_MULTIPLY; }

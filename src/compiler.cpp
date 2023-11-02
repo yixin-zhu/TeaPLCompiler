@@ -5,7 +5,7 @@
 #include "y.tab.hpp"
 
 // set YACCDEBUG 1 to turn on yydebug
-#define YACCDEBUG 1
+#define YACCDEBUG 0
 
 using namespace std;
 
