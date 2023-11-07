@@ -105,6 +105,7 @@ void add_token(string token, aA_type type, param_level level)
         break;
     case local:
         add_token_local(token, type);
+        l_token_stack.push(token);
         break;
     case funcparam:
         add_token_funcparam(token, type);
@@ -390,6 +391,14 @@ void add_param_list_to_map(std::ostream *out, std::vector<aA_varDecl> varDecls) 
         add_token(*(vd->u.declScalar->id), vd->u.declScalar->type, funcparam);
     }
 }
+
+void recover_local_variables(int remain) {
+    while(l_token_stack.size() > remain) {
+        l_token2Type.erase(l_token_stack.top());
+        l_token_stack.pop();
+    }
+}
+
 // Example:
 //      fn main(a:int, b:int)->int{
 //          let c:int;
@@ -406,19 +415,23 @@ void check_FnDef(std::ostream *out, aA_fnDef fd)
     check_FnDecl(out, fd->fnDecl);
     add_param_list_to_map(out, fd->fnDecl->paramDecl->varDecls);
     // clear stack
+    recover_local_variables(0);
+    int before = 0;
     // clear local map
     for (auto stmt: fd->stmts) {
         check_CodeblockStmt(out, stmt, local);
     }
     // clear mapping of func params and local variables 
-    f_token2Type.clear();
+    recover_local_variables(before);
     return;
 }
 
+//todo
 void check_CodeblockStmt(std::ostream *out, aA_codeBlockStmt cs, param_level level = local)
 {
     if (!cs)
         return;
+    int before = l_token_stack.size();
     switch (cs->kind)
     {
     case A_codeBlockStmtType::A_varDeclStmtKind:
@@ -442,9 +455,10 @@ void check_CodeblockStmt(std::ostream *out, aA_codeBlockStmt cs, param_level lev
     default:
         break;
     }
+    recover_local_variables(before);
     return;
 }
-
+//todo: refer to the slides
 void check_AssignStmt(std::ostream *out, aA_assignStmt as)
 {
     if (!as)
@@ -505,11 +519,11 @@ void check_IfStmt(std::ostream *out, aA_ifStmt is)
     check_BoolExpr(out, is->boolExpr);
     for (aA_codeBlockStmt s : is->ifStmts)
     {
-        check_CodeblockStmt(out, s);
+        check_CodeblockStmt(out, s, local);
     }
     for (aA_codeBlockStmt s : is->elseStmts)
     {
-        check_CodeblockStmt(out, s);
+        check_CodeblockStmt(out, s, local);
     }
     return;
 }
@@ -623,7 +637,7 @@ void check_WhileStmt(std::ostream *out, aA_whileStmt ws)
     check_BoolExpr(out, ws->boolExpr);
     for (aA_codeBlockStmt s : ws->whileStmts)
     {
-        check_CodeblockStmt(out, s);
+        check_CodeblockStmt(out, s, local);
     }
     return;
 }
