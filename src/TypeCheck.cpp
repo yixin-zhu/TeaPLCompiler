@@ -18,12 +18,15 @@ typedef enum member_map_type
     func
 } member_map_type;
 
-// maps to store the type information. Feel free to design new data structures if you need.
+// maps to store the type information.  
 typeMap g_token2Type; // global token ids to type
 typeMap f_token2Type; // func params token ids to type
 typeMap l_token2Type; // local params token ids to type
 typeMap t_token2Type; // temporary token ids to type
 
+lengthMap array2len[4]; // array token ids to length
+posMap func2pos;    // function token ids to declaration position
+boolMap func2state; // function token ids to state: 0 for non-defined, 1 for has-defined
 stack<string> l_token_stack;
 
 paramMemberMap func2Param;
@@ -289,6 +292,10 @@ void check_VarDeclStmt(std::ostream *out, aA_varDeclStmt vd, param_level level)
     return;
 }
 
+void add_array_length_record(string id, int len, param_level level)
+{
+    array2len[level][id] = len;
+}
 // declaration only
 // let a:int;
 // let a[5]:int;
@@ -311,7 +318,7 @@ void check_VarDecl(std::ostream *out, aA_varDecl vd, param_level level)
         int len = vd->u.declArray->len;
         check_duplicate(out, level, id, vd->pos);
         check_len_positive(out, len, vd->pos);
-        // todo: record array length
+        add_array_length_record(id, len, level);
         break;
     default:
         break;
@@ -743,6 +750,23 @@ Example:
 Hint:
     check the validity of the array index
 */
+
+int get_arr_len(string id, param_level level)
+{
+    if (level == global) {
+        return array2len[global][id]; 
+    } else if (level == local) {
+        if (array2len[local].find(id) != array2len[local].end()) {
+            return array2len[local][id];
+        } else if (array2len[funcparam].find(id) != array2len[funcparam].end()) {
+            return array2len[funcparam][id];
+        } else {
+            return array2len[global][id];
+        }
+    }
+    return 0;
+}
+
 aA_type check_ArrayExpr(std::ostream *out, aA_arrayExpr ae, param_level level)
 {
     if (!ae)
@@ -752,8 +776,7 @@ aA_type check_ArrayExpr(std::ostream *out, aA_arrayExpr ae, param_level level)
     check_token_exist(out, id, ae->pos, level);
     // check array index within range
     aA_indexExpr indexExp = ae->idx;
-    // todo: int arr_len = get_arr_len(id, level);
-    int arr_len = 0;
+    int arr_len = get_arr_len(id, level);
     check_IndexExpr(out, indexExp, level, arr_len);
     // return the type of the array
     aA_type type = find_token(id, level);
@@ -848,7 +871,9 @@ aA_type check_ExprUnit(std::ostream *out, aA_exprUnit eu, param_level level)
     break;
     case A_exprUnitType::A_numExprKind:
     {
-        //todo return a int type
+        ret->pos = eu->pos;
+        ret->type = A_dataType::A_nativeTypeKind;
+        ret->u.nativeType = A_nativeType::A_intTypeKind;
     }
     break;
     case A_exprUnitType::A_fnCallKind:

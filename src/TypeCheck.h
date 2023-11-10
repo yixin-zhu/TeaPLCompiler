@@ -11,7 +11,9 @@
 
 // you can use this type to store the type a token.
 typedef std::unordered_map<string, aA_type> typeMap; 
-
+typedef std::unordered_map<string, int> lengthMap;
+typedef std::unordered_map<string, int> posMap;
+typedef std::unordered_map<string, int> boolMap;
 // you can use this map to store the members of a struct or params of a function.
 typedef std::unordered_map<string, vector<aA_varDecl>*> paramMemberMap;
 
