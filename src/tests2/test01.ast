@@ -1,0 +1,101 @@
+A_program 
+	|--A_programElement 
+		|--A_structDef struct MyStruct1 {
+
+			|--A_varDecl 
+				|--A_varDeclScalar node:
+				|--A_type int,
+
+			|--A_varDecl 
+				|--A_varDeclScalar val:
+				|--A_type int
+}
+
+	|--A_programElement 
+		|--A_varDeclStmt let 
+			|--A_varDecl 
+				|--A_varDeclArray gad[10]:
+				|--A_type MyStruct1;
+
+	|--A_programElement 
+		|--A_fnDeclStmt 
+			|--A_fnDecl fn foo(
+				|--A_paramDecl 
+					|--A_varDecl 
+						|--A_varDeclArray gad[10]:
+						|--A_type MyStruct1)->
+			|--A_type int;
+
+	|--A_programElement 
+		|--A_fnDeclStmt 
+			|--A_fnDecl fn barnull(
+				|--A_paramDecl );
+
+	|--A_programElement 
+		|--A_fnDef 
+			|--A_fnDecl fn main(
+				|--A_paramDecl )->
+			|--A_type int{
+
+			|--A_codeBlockStmt 
+				|--A_callStmt 
+					|--A_fnCall barnull();
+
+			|--A_codeBlockStmt 
+				|--A_callStmt 
+					|--A_fnCall foo(
+					|--A_rightVal 
+						|--A_arithExpr 
+							|--A_exprUnit gad);
+
+			|--A_codeBlockStmt 
+				|--A_returnStmt ret 
+				|--A_rightVal 
+					|--A_arithExpr 
+						|--A_exprUnit 0;
+}
+
+	|--A_programElement 
+		|--A_fnDef 
+			|--A_fnDecl fn foo(
+				|--A_paramDecl 
+					|--A_varDecl 
+						|--A_varDeclArray gad[10]:
+						|--A_type MyStruct1)->
+			|--A_type int{
+
+			|--A_codeBlockStmt 
+				|--A_varDeclStmt let 
+					|--A_varDef 
+						|--A_varDefScalar r:
+						|--A_type int = 
+						|--A_rightVal 
+							|--A_arithExpr 
+								|--A_exprUnit 0;
+
+			|--A_codeBlockStmt 
+				|--A_varDeclStmt let 
+					|--A_varDef 
+						|--A_varDefScalar i:
+						|--A_type int = 
+						|--A_rightVal 
+							|--A_arithExpr 
+								|--A_exprUnit 0;
+
+			|--A_codeBlockStmt 
+				|--A_whileStmt while(
+					|--A_boolExpr 
+						|--A_boolUnit (
+							|--A_comExpr 
+								|--A_exprUnit i<
+								|--A_exprUnit 10)){
+
+					|--A_codeBlockStmt ;
+}
+
+			|--A_codeBlockStmt 
+				|--A_returnStmt ret 
+				|--A_rightVal 
+					|--A_arithExpr 
+						|--A_exprUnit r;
+}

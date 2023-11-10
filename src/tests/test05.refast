@@ -1,0 +1,28 @@
+struct MyStruct1 {
+node:int,
+val:int
+}
+
+let gc:int = 0;
+
+let gab[10]:int = {0};
+
+fn foo(a:int, b:int)->int;
+
+fn main()->int{
+let lb:int = ((1+2)<3);
+let lc:int = 0;
+let ls1:MyStruct1;
+ls1.node = lb;
+ls1.val = lc;
+ret foo(ls1.node, ls1.val);
+}
+
+fn foo(a:int, b:int)->int{
+while((a>b)&&(a>=0)&&(b<=0)){
+a = a-1;
+b = b+1;
+}
+ret a+b;
+}
+

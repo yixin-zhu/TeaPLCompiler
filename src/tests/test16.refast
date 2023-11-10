@@ -1,0 +1,65 @@
+fn getint()->int;
+
+fn putint(num:int);
+
+fn putch(ch:int);
+
+let space:int = 32;
+
+let array[1000]:int;
+
+fn swap(i:int, j:int){
+let tmp:int = array[i];
+array[i] = array[j];
+array[j] = tmp;
+}
+
+fn findPivot(start:int, end:int)->int{
+let pivot:int = array[end];
+let pIndex:int = start;
+let i:int = start;
+while((i<end)){
+if((array[i]<=pivot)){
+swap(i, pIndex);
+pIndex = pIndex+1;
+}
+i = i+1;
+}
+swap(pIndex, end);
+ret pIndex;
+}
+
+fn findSmallest(low:int, high:int, k:int, n:int){
+if(low!=high){
+let pIndex:int = findPivot(low, high);
+if((k==pIndex)){
+let i:int = 0;
+while((i<pIndex)){
+putint(array[i]);
+putch(space);
+i = i+1;
+}
+}else{
+if((k<pIndex)){
+findSmallest(low, pIndex-1, k, n);
+}else{
+findSmallest(pIndex+1, high, k, n);
+}
+}
+}
+}
+
+fn main()->int{
+let n:int = getint();
+let k:int = getint();
+let i:int = 0;
+while((i<n)){
+array[i] = getint();
+i = i+1;
+}
+let low:int = 0;
+let high:int = n-1;
+findSmallest(low, high, k, n);
+ret 0;
+}
+

@@ -1,0 +1,30 @@
+struct MyStruct1 {
+node:int,
+val:int
+}
+
+let gb:MyStruct1;
+
+fn bar(a:MyStruct1, b:MyStruct1)->int;
+
+fn mod(a:int, b:int)->int;
+
+fn main()->int{
+let lb:MyStruct1;
+gb.node = 25;
+gb.val = 24;
+lb.node = 36;
+lb.val = 35;
+ret bar(gb, lb);
+}
+
+fn bar(a:MyStruct1, b:MyStruct1)->int{
+let moda:int = mod(a.node, a.val);
+let modb:int = mod(b.node, b.val);
+ret moda+modb;
+}
+
+fn mod(a:int, b:int)->int{
+ret a-a/b*b;
+}
+

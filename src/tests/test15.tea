@@ -1,0 +1,79 @@
+// 12_DSU
+
+fn getch()->int;
+fn putint(num:int);
+fn putch(ch:int);
+
+fn quickread()->int{
+	let ch:int = getch();
+	let x:int = 0;
+	let f:int = 0;
+	while ((ch < 48) || (ch > 57)){
+		if((ch == 45)){
+			f = 1;
+		} 
+		ch = getch();
+	}
+	while ((ch >= 48) && (ch <=57)){
+		x = x * 10 + ch - 48;
+		ch = getch();
+	}
+	if ((f != 0)){
+		ret -x;
+	}else{
+		ret x;
+	}
+}
+
+let n:int;
+let m:int;
+let fa[100005]:int;
+
+fn init(){
+	let i:int = 1;
+	while ((i <= n)){
+		fa[i] = i;
+		i = i + 1;
+	}
+}
+
+fn find(x:int)->int{
+	if ((fa[x] == x)){
+		ret x;
+	}else{
+		let pa:int = find(fa[x]);
+		fa[x] = pa;
+		ret pa;
+	}
+}
+
+fn same(x:int, y:int)->int{
+	if ((find(x) == find(y))){
+		ret 1;
+	}
+	ret 0;
+}
+
+fn main()->int{
+	n = quickread(); m = quickread();
+	init();
+	let ch:int = 0;
+	let x:int = 0;
+	let y:int = 0;
+	while ((m != 0)){
+		ch = getch();
+		while ((ch != 81) && (ch != 85)){
+			ch = getch();
+		}
+		if ((ch == 81)){ // query
+			x = quickread(); y = quickread();
+			putint(same(x, y));
+			putch(10);
+		}else{ // union
+			x = find(quickread()); y = find(quickread());
+			fa[x] = y;
+		}
+		m = m - 1;
+	}
+	ret 0;
+}

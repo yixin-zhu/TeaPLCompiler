@@ -1,0 +1,21 @@
+fn getint()->int;
+
+let a[5]:int;
+
+fn main()->int{
+a[0] = getint();
+a[1] = getint();
+a[2] = getint();
+a[3] = getint();
+a[4] = getint();
+let cnt:int;
+cnt = 4;
+let sum:int;
+sum = 0;
+while((cnt>1)){
+sum = sum+a[cnt];
+cnt = cnt-1;
+}
+ret sum;
+}
+

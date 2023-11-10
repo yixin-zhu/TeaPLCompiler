@@ -110,19 +110,11 @@ extern int  yywrap();
 %type <ifStmt>              IFSTMT
 %type <whileStmt>           WHILESTMT
 %type <leftVal>             LEFTVAL
+%type <boolBiOpExpr>        BOOLBIOPEXPR
 
-
-%right '='
-%left OP_OR
-%left OP_AND
-%left OP_EQ OP_NEQ
-%left OP_LE OP_LESS OP_GREAT OP_GE
 %left OP_PLUS OP_MINUS
 %left OP_MULTIPLY OP_DIVTION
-%right '!' UMINUS
-%left '[' ']' '(' ')'
-%left '.'
-%right ELSE
+
 %start PROGRAM
 %%
 
@@ -205,9 +197,11 @@ FNDECLSTMT : FNDECL ';'
   $$ = A_FnDeclStmt($1->pos, $1);
 }
 ;
+
+
 FNDECL : FN TOKEN_ID '(' PARAMDECL ')' 
 {
-  $$ = A_FnDecl($1, $2->id, $4, A_NativeType($1, A_intTypeKind));
+  $$ = A_FnDecl($1, $2->id, $4, NULL);
 }
 | FN TOKEN_ID '(' PARAMDECL ')' OP_ARROW TYPE 
 {
@@ -368,6 +362,10 @@ CODEBLOCKSTMT : ';'
 {
     $$=A_BlockBreakStmt($2);
 }
+| 
+{
+    $$=A_BlockNullStmt(NULL);
+}
 ;
 
 RETURNSTMT : RET RIGHTVAL ';'
@@ -395,7 +393,6 @@ IFSTMT : IF '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}' ELSE '{' CODEBLOCKSTMTLIS
     $$=A_IfStmt($1, $3, $6, NULL);
 }
 
-
 WHILESTMT : WHILE '(' BOOLEXPR ')' '{' CODEBLOCKSTMTLIST '}'
 {
     $$=A_WhileStmt($1, $3, $6);
@@ -412,13 +409,9 @@ VARDECLSTMT: LET VARDECL ';'
 ;
 
 
-BOOLEXPR : BOOLEXPR OP_AND BOOLEXPR
+BOOLEXPR : BOOLBIOPEXPR
 {
-  $$ = A_BoolBiOp_Expr($1->pos, A_BoolBiOpExpr($1->pos, A_and, $1, $3));
-}
-|BOOLEXPR OP_OR BOOLEXPR 
-{
-  $$ = A_BoolBiOp_Expr($1->pos, A_BoolBiOpExpr($1->pos, A_or, $1, $3));
+  $$ = A_BoolBiOp_Expr($1->pos, $1);
 }
 | BOOLUNIT
 {
@@ -426,13 +419,29 @@ BOOLEXPR : BOOLEXPR OP_AND BOOLEXPR
 }
 ;
 
+BOOLBIOPEXPR: BOOLEXPR OP_OR BOOLEXPR
+{
+  $$ = A_BoolBiOpExpr($1->pos, A_or, $1, $3);
+}
+|
+BOOLEXPR OP_AND BOOLEXPR
+{
+  $$ = A_BoolBiOpExpr($1->pos, A_and, $1, $3);
+}
+;
+
 BOOLUNIT : COMEXPR  
 {
   $$ = A_ComExprUnit($1->pos, $1);
 }
-|  '(' BOOLEXPR ')'
+|
+ '(' COMEXPR ')'  
 {
-  $$ = A_BoolExprUnit($2->pos, $2);
+  $$ = A_ComExprUnit($1, $2);
+}
+| '(' BOOLEXPR ')'
+{
+  $$ = A_BoolExprUnit($1, $2);
 }
 | '!' BOOLUNIT 
 {
@@ -493,7 +502,6 @@ EXPRUNIT : TOKEN_NUM
 }
 | TOKEN_ID
 {
-    // printf("exprunit\n");
     $$=A_IdExprUnit($1->pos, $1->id);
     // printf("eof exprunit\n");
 }
@@ -574,4 +582,5 @@ int yywrap()
   return(1);
 }
 }
+
 

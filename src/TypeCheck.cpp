@@ -4,34 +4,21 @@
 #include <stack>
 #include <stdlib.h>
 using namespace std;
-typedef enum param_level
-{
-    global,
-    local,
-    funcparam,
-    temp
-} param_level;
-
-typedef enum member_map_type
-{
-    struct_,
-    func
-} member_map_type;
-
-// maps to store the type information.  
+const int version = 0;
+// maps to store the type information.
 typeMap g_token2Type; // global token ids to type
 typeMap f_token2Type; // func params token ids to type
 typeMap l_token2Type; // local params token ids to type
 typeMap t_token2Type; // temporary token ids to type
 
 lengthMap array2len[4]; // array token ids to length
-posMap func2pos;    // function token ids to declaration position
-boolMap func2state; // function token ids to state: 0 for non-defined, 1 for has-defined
+posMap func2pos;        // function token ids to declaration position
+boolMap func2state;     // function token ids to state: 0 for non-defined, 1 for has-defined
 stack<string> l_token_stack;
 
 paramMemberMap func2Param;
 paramMemberMap struct2Members;
-
+aA_type func_type = nullptr;
 // private util functions. You can use these functions to help you debug.
 void error_print(std::ostream *out, A_pos p, string info)
 {
@@ -67,19 +54,23 @@ bool token_exist_at(string token, typeMap *map)
     return (map->find(token) != map->end());
 }
 
-bool token_exist_global(string token) {
+bool token_exist_global(string token)
+{
     return token_exist_at(token, &g_token2Type);
 }
 
-bool token_exist_local(string token) {
+bool token_exist_local(string token)
+{
     return token_exist_at(token, &l_token2Type);
 }
 
-bool token_exist_funcparam(string token) {
+bool token_exist_funcparam(string token)
+{
     return token_exist_at(token, &f_token2Type);
 }
 
-bool token_exist_temp(string token) {
+bool token_exist_temp(string token)
+{
     return token_exist_at(token, &t_token2Type);
 }
 
@@ -107,12 +98,14 @@ aA_type find_token_funcparam(string token)
     return find_token_at(token, &f_token2Type);
 }
 
-bool token_exist(string token, param_level level) {
+bool token_exist(string token, param_level level)
+{
     switch (level)
     {
     case global:
         return token_exist_global(token);
     case local:
+        //std::cout<<"token: "<<token<<std::endl;
         return token_exist_local(token) || token_exist_funcparam(token) || token_exist_global(token);
     case funcparam:
         return token_exist_funcparam(token);
@@ -219,7 +212,7 @@ void check_len_positive(std::ostream *out, int len, A_pos pos)
 {
     if (len <= 0)
     {
-        error_print(out, pos, "array length must be positive");
+        error_print(out, pos, "array length must be positive, get length " + std::to_string(len) + "!");
     }
 }
 
@@ -229,9 +222,10 @@ void check_ProgramElement(std::ostream *out, aA_programElement ele, int round = 
 {
     if (!ele)
         return;
-    
-    if ((round == 0 && ele->kind == A_programFnDefKind) || 
-        (round == 1 && ele->kind != A_programFnDefKind)){
+
+    if ((round == 0 && ele->kind == A_programFnDefKind) ||
+        (round == 1 && ele->kind != A_programFnDefKind))
+    {
         return;
     }
 
@@ -305,6 +299,7 @@ void check_VarDecl(std::ostream *out, aA_varDecl vd, param_level level)
         return;
     string id;
     aA_type type;
+    int len;
     switch (vd->kind)
     {
     case A_varDeclType::A_varDeclScalarKind:
@@ -315,7 +310,7 @@ void check_VarDecl(std::ostream *out, aA_varDecl vd, param_level level)
     case A_varDeclType::A_varDeclArrayKind:
         id = *(vd->u.declArray->id);
         type = vd->u.declArray->type;
-        int len = vd->u.declArray->len;
+        len = vd->u.declArray->len;
         check_duplicate(out, level, id, vd->pos);
         check_len_positive(out, len, vd->pos);
         add_array_length_record(id, len, level);
@@ -352,7 +347,7 @@ void check_VarDef(std::ostream *out, aA_varDef vd, param_level level)
         check_len_positive(out, len, vd->pos);
         if (len != vals.size())
         {
-            error_print(out, vd->pos, "array length must be equal to the number of initializers");
+            error_print(out, vd->pos, "array length must be equal to the number of initializers, expect " + std::to_string(len) + " and get" + std::to_string(vals.size()) + "!");
         }
         for (auto val : vals)
         {
@@ -366,7 +361,7 @@ void check_VarDef(std::ostream *out, aA_varDef vd, param_level level)
 aA_type check_ArithBiOpExpr(std::ostream *out, aA_arithBiOpExpr bi, param_level level)
 {
     if (!bi)
-        return;
+        return nullptr;
     aA_type leftType = check_ArithExpr(out, bi->left, level);
     aA_type rightType = check_ArithExpr(out, bi->right, level);
     check_type_comparable(out, leftType, rightType, bi->pos);
@@ -380,13 +375,19 @@ aA_type check_ArithExpr(std::ostream *out, aA_arithExpr ar, param_level level)
     switch (ar->kind)
     {
     case A_arithBiOpExprKind:
+    {
         aA_arithBiOpExpr bi = ar->u.arithBiOpExpr;
         return check_ArithBiOpExpr(out, bi, level);
-        break;
+    }
+
+    break;
     case A_exprUnitKind:
+    {
         aA_exprUnit eu = ar->u.exprUnit;
         return check_ExprUnit(out, eu, level);
-        break;
+    }
+
+    break;
     default:
         break;
     }
@@ -409,13 +410,18 @@ void check_BoolExpr(std::ostream *out, aA_boolExpr bo, param_level level)
     switch (bo->kind)
     {
     case A_boolBiOpExprKind:
+    {
         aA_boolBiOpExpr bi = bo->u.boolBiOpExpr;
         check_BoolBiOpExpr(out, bi, level);
-        break;
+    }
+    break;
     case A_boolUnitKind:
+    {
         aA_boolUnit bu = bo->u.boolUnit;
         check_BoolUnit(out, bu, level);
-        break;
+    }
+
+    break;
     default:
         break;
     }
@@ -426,24 +432,24 @@ void check_type_comparable(std::ostream *out, aA_type leftType, aA_type rightTyp
 {
     if (leftType == nullptr || rightType == nullptr)
     {
-        error_print(out, pos, "type not defined!");
+        error_print(out, pos, "type not comparable!");
     }
     if (leftType->type != rightType->type)
     {
-        error_print(out, pos, "type not comparable!");
+        error_print(out, pos, "type of variable not comparable!");
     }
     if (leftType->type == A_dataType::A_nativeTypeKind)
     {
         if (leftType->u.nativeType != rightType->u.nativeType)
         {
-            error_print(out, pos, "type not comparable!");
+            error_print(out, pos, "tow types of variable not comparable!");
         }
     }
     else
     {
         if (*(leftType->u.structType) != *(rightType->u.structType))
         {
-            error_print(out, pos, "type not comparable!");
+            error_print(out, pos, "two struct types not comparable!");
         }
     }
     return;
@@ -463,19 +469,27 @@ void check_comparable_with_bool(std::ostream *out, aA_type type, A_pos pos)
 
 void check_RightVal(std::ostream *out, aA_rightVal rv, param_level level, const aA_type leftType)
 {
-    if (!rv) {
-        if (!leftType) {
+    if (!rv)
+    {
+        if (!leftType)
+        {
             return;
-        } else {
+        }
+        else
+        {
             error_print(out, rv->pos, "Right value missing!");
         }
     }
-        
+
     aA_type rightType = nullptr;
     switch (rv->kind)
     {
     case A_rightValType::A_arithExprValKind:
         rightType = check_ArithExpr(out, rv->u.arithExpr, level);
+        if (rightType == nullptr)
+        {
+            cout<<"right null"<<endl;   
+        }
         check_type_comparable(out, leftType, rightType, rv->pos);
         break;
     case A_rightValType::A_boolExprValKind:
@@ -516,38 +530,52 @@ void check_StructDef(std::ostream *out, aA_structDef sd, param_level level)
     return;
 }
 
-void check_struct_exist(std::ostream *out, A_pos pos, string name)
+void check_struct_exist(std::ostream *out, A_pos pos, aA_type struct_type)
 {
-    if (struct2Members.find(name) == struct2Members.end())
+    if (struct_type == nullptr || struct_type->type != A_structTypeKind || struct_type->u.structType == nullptr) {
+        error_print(out, pos, "variable is not a struct!");
+    }
+    string id = *(struct_type->u.structType); 
+    if (struct2Members.find(id) == struct2Members.end())
     {
-        error_print(out, pos, "type not defined!");
+        error_print(out, pos, "struct " + id + " not defined!");
     }
 }
 // struct member can't have same name
-aA_type check_struct_and_member_exists(std::ostream *out, A_pos pos, string struct_id, string member_id) {
-    check_struct_exist(out, pos, struct_id);
+aA_type check_struct_and_member_exists(std::ostream *out, A_pos pos, aA_type struct_type, string member_id)
+{
+    check_struct_exist(out, pos, struct_type);
+    string struct_id = *(struct_type->u.structType); 
     vector<aA_varDecl> member_decl = *struct2Members[struct_id];
     string id;
     aA_type type;
-    for (auto member_exp: member_decl) {
-        if (member_exp->kind == A_varDeclType::A_varDeclScalarKind) {
+    for (auto member_exp : member_decl)
+    {
+        if (member_exp->kind == A_varDeclType::A_varDeclScalarKind)
+        {
             id = *(member_exp->u.declScalar->id);
             type = member_exp->u.declScalar->type;
-        } else if (member_exp->kind == A_varDeclType::A_varDeclArrayKind) {
+        }
+        else if (member_exp->kind == A_varDeclType::A_varDeclArrayKind)
+        {
             id = *(member_exp->u.declArray->id);
             type = member_exp->u.declArray->type;
         }
-        if (id == member_id) {
+        if (id == member_id)
+        {
             return type;
         }
     }
-    //can't find matching member
-    error_print(out, pos, struct_id + ":member " + member_id + " not defined!");
+    // can't find matching member
+    error_print(out, pos, struct_id + " :member " + member_id + " not defined!");
     return nullptr;
 }
 
 void check_type_exist(std::ostream *out, aA_type type)
 {
+    if(type == nullptr){
+        return;
+    }
     if (type->type == A_dataType::A_nativeTypeKind)
     {
         return;
@@ -555,28 +583,75 @@ void check_type_exist(std::ostream *out, aA_type type)
     // check struct type exists
     A_pos pos = type->pos;
     string struct_type_name = *(type->u.structType);
-    check_struct_exist(out, pos, struct_type_name);
+    aA_type struct_type = find_token(struct_type_name, global);
+    check_struct_exist(out, pos, struct_type);
 }
 
+void check_param_list_match(std::ostream *out, vector<aA_varDecl> decl_params, vector<aA_varDecl> def_params, A_pos pos)
+{
+    if (decl_params.size() != def_params.size())
+    {
+        error_print(out, pos, "function params list not match, expect " + std::to_string(decl_params.size()) + " and get " + std::to_string(def_params.size()) + "!");
+    }
+    for (int i = 0; i < decl_params.size(); i++)
+    {
+        aA_type decl_type = get_type_of(decl_params[i]);
+        aA_type def_type = get_type_of(def_params[i]);
+        check_type_comparable(out, decl_type, def_type, pos);
+    }
+}
 // todo: [unimplemented] declare then define
 //  fn main(a:int, b:int)->int
-void check_FnDecl(std::ostream *out, aA_fnDecl fd)
+void check_FnDecl(std::ostream *out, aA_fnDecl fd, fun_decl_type fun_decl_type = decl)
 {
     if (!fd)
         return;
     string id = *(fd->id);
     A_pos pos = fd->pos;
-    // check function is duplicated declared
-    check_duplicate(out, global, id, pos);
-    // check function parameters
-    check_varDecls(out, fd->paramDecl->varDecls);
-    // check function return type
-    aA_type type = fd->type;
-    check_type_exist(out, type);
-    // add to global map
-    add_token(id, type, global);
-    // add params to map
-    add_memberMap(id, &(fd->paramDecl->varDecls), func);
+
+    if (fun_decl_type == decl)
+    {
+        check_duplicate(out, global, id, pos);
+        check_varDecls(out, fd->paramDecl->varDecls);
+        // check function return type
+        aA_type type = fd->type;
+        check_type_exist(out, type);
+        // add to fun2pos
+        func2pos[id] = pos;
+        // add to global map
+        add_token(id, type, global);
+        // add params to map
+        add_memberMap(id, &(fd->paramDecl->varDecls), func);
+        func2state[id] = 0;
+    }
+    else
+    {   
+        aA_type def_type = fd->type;
+        check_type_exist(out, def_type);
+        check_varDecls(out, fd->paramDecl->varDecls);
+
+        //has declation or definition already
+        if (func2state.find(id) != func2state.end()) 
+        {   //definition already
+            if (func2state[id] == 1)
+            {
+                error_print(out, pos, "function " + id + " has been defined!");
+            }
+            //only declation
+            //check params list and return type
+            aA_type decl_type = find_token(id, global);
+            check_type_comparable(out, def_type, decl_type, pos);
+            vector<aA_varDecl> decl_params = *func2Param[id];
+            vector<aA_varDecl> def_params = fd->paramDecl->varDecls;
+            check_param_list_match(out, decl_params, def_params, pos);
+        } else {
+            add_token(id, def_type, global);
+            add_memberMap(id, &(fd->paramDecl->varDecls), func);
+        }
+        func2state[id] = 1;
+        
+    }
+
     return;
 }
 
@@ -585,7 +660,7 @@ void check_FnDeclStmt(std::ostream *out, aA_fnDeclStmt fd, param_level level = g
 {
     if (!fd)
         return;
-    check_FnDecl(out, fd->fnDecl);
+    check_FnDecl(out, fd->fnDecl, decl);
     return;
 }
 
@@ -620,8 +695,11 @@ void check_FnDef(std::ostream *out, aA_fnDef fd)
 {
     if (!fd)
         return;
-    check_FnDecl(out, fd->fnDecl);
-    aA_type type = fd->fnDecl->type;
+    check_FnDecl(out, fd->fnDecl, def);
+    func_type = fd->fnDecl->type;
+    if (func_type == nullptr) {
+        cout <<"function "<<*(fd->fnDecl->id)<<" return null type"<<endl;
+    }
     add_param_list_to_map(out, fd->fnDecl->paramDecl->varDecls);
     // clear stack
     recover_local_variables(0);
@@ -629,17 +707,19 @@ void check_FnDef(std::ostream *out, aA_fnDef fd)
     // clear local map
     for (auto stmt : fd->stmts)
     {
-        check_CodeblockStmt(out, stmt, local, type);
+        check_CodeblockStmt(out, stmt, local);
     }
     // clear mapping of func params and local variables
     recover_local_variables(before);
+    func_type = nullptr;
     return;
 }
 
-void check_CodeblockStmt(std::ostream *out, aA_codeBlockStmt cs, param_level level = local, aA_type func_type = nullptr)
+void check_CodeblockStmt(std::ostream *out, aA_codeBlockStmt cs, param_level level = local)
 {
     if (!cs)
         return;
+    
     switch (cs->kind)
     {
     case A_codeBlockStmtType::A_varDeclStmtKind:
@@ -658,14 +738,13 @@ void check_CodeblockStmt(std::ostream *out, aA_codeBlockStmt cs, param_level lev
         check_CallStmt(out, cs->u.callStmt);
         break;
     case A_codeBlockStmtType::A_returnStmtKind:
-        check_ReturnStmt(out, cs->u.returnStmt, local, func_type);
+        check_ReturnStmt(out, cs->u.returnStmt, local);
         break;
     default:
         break;
     }
     return;
 }
-
 
 aA_type check_LeftVal(std::ostream *out, aA_leftVal lv, param_level level)
 {
@@ -677,7 +756,7 @@ aA_type check_LeftVal(std::ostream *out, aA_leftVal lv, param_level level)
     case A_leftValType::A_varValKind:
     {
         string id = *(lv->u.id);
-        
+        type = find_token(id, level);
     }
     break;
     case A_leftValType::A_arrValKind:
@@ -702,6 +781,10 @@ void check_AssignStmt(std::ostream *out, aA_assignStmt as, param_level level)
         return;
     string name;
     aA_type leftType = check_LeftVal(out, as->leftVal, level);
+    if (leftType == nullptr)
+    {
+        error_print(out, as->pos, "left variable missing!");
+    }
     check_RightVal(out, as->rightVal, level, leftType);
     return;
 }
@@ -753,14 +836,22 @@ Hint:
 
 int get_arr_len(string id, param_level level)
 {
-    if (level == global) {
-        return array2len[global][id]; 
-    } else if (level == local) {
-        if (array2len[local].find(id) != array2len[local].end()) {
+    if (level == global)
+    {
+        return array2len[global][id];
+    }
+    else if (level == local)
+    {
+        if (array2len[local].find(id) != array2len[local].end())
+        {
             return array2len[local][id];
-        } else if (array2len[funcparam].find(id) != array2len[funcparam].end()) {
+        }
+        else if (array2len[funcparam].find(id) != array2len[funcparam].end())
+        {
             return array2len[funcparam][id];
-        } else {
+        }
+        else
+        {
             return array2len[global][id];
         }
     }
@@ -770,7 +861,7 @@ int get_arr_len(string id, param_level level)
 aA_type check_ArrayExpr(std::ostream *out, aA_arrayExpr ae, param_level level)
 {
     if (!ae)
-        return;
+        return nullptr;
     string id = *(ae->arr);
     // check array exists
     check_token_exist(out, id, ae->pos, level);
@@ -797,8 +888,10 @@ aA_type check_MemberExpr(std::ostream *out, aA_memberExpr me, param_level level)
         return nullptr;
     string struct_id = *(me->structId);
     string member_id = *(me->memberId);
+    check_token_exist(out, struct_id, me->pos, level);
+    aA_type struct_type = find_token(struct_id, level);
     // check struct and member exists
-    aA_type member_type = check_struct_and_member_exists(out, me->pos, struct_id, member_id);
+    aA_type member_type = check_struct_and_member_exists(out, me->pos, struct_type, member_id);
     return member_type;
 }
 
@@ -806,7 +899,7 @@ void check_IfStmt(std::ostream *out, aA_ifStmt is)
 {
     if (!is)
         return;
-    check_BoolExpr(out, is->boolExpr);
+    check_BoolExpr(out, is->boolExpr, local);
     int before = l_token_stack.size();
     for (aA_codeBlockStmt s : is->ifStmts)
     {
@@ -839,14 +932,18 @@ void check_BoolUnit(std::ostream *out, aA_boolUnit bu, param_level level)
     break;
 
     case A_boolUnitType::A_boolExprKind:
+    {
         aA_boolExpr boolExpr = bu->u.boolExpr;
         check_BoolExpr(out, boolExpr, level);
-        break;
+    }
+    break;
 
     case A_boolUnitType::A_boolUOpExprKind:
+    {
         aA_boolUnit boolUnit = bu->u.boolUOpExpr->cond;
         check_BoolUnit(out, boolUnit, level);
-        break;
+    }
+    break;
     default:
         break;
     }
@@ -856,7 +953,7 @@ void check_BoolUnit(std::ostream *out, aA_boolUnit bu, param_level level)
 // validate the expression unit and return the aA_type of it
 aA_type check_ExprUnit(std::ostream *out, aA_exprUnit eu, param_level level)
 {
-    
+
     if (!eu)
         return nullptr;
     aA_type ret;
@@ -871,6 +968,7 @@ aA_type check_ExprUnit(std::ostream *out, aA_exprUnit eu, param_level level)
     break;
     case A_exprUnitType::A_numExprKind:
     {
+        ret = new aA_type_();
         ret->pos = eu->pos;
         ret->type = A_dataType::A_nativeTypeKind;
         ret->u.nativeType = A_nativeType::A_intTypeKind;
@@ -898,6 +996,10 @@ aA_type check_ExprUnit(std::ostream *out, aA_exprUnit eu, param_level level)
     {
         aA_arithExpr arithExpr = eu->u.arithExpr;
         ret = check_ArithExpr(out, arithExpr, level);
+        if (ret == nullptr)
+        {
+            cout << "arithExpr return null type" << endl;
+        }
     }
     break;
     case A_exprUnitType::A_arithUExprKind:
@@ -909,16 +1011,27 @@ aA_type check_ExprUnit(std::ostream *out, aA_exprUnit eu, param_level level)
     }
     return ret;
 }
-
+aA_type get_type_of(aA_varDecl vd)
+{
+    if (vd->kind == A_varDeclType::A_varDeclScalarKind)
+    {
+        return vd->u.declScalar->type;
+    }
+    else if (vd->kind == A_varDeclType::A_varDeclArrayKind)
+    {
+        return vd->u.declArray->type;
+    }
+    return nullptr;
+}
 // Example:
 //      foo(1, 2);
 aA_type check_FuncCall(std::ostream *out, aA_fnCall fc)
 {
     if (!fc)
-        return;
-    //check function exist
+        return nullptr;
+    // check function exist
     check_token_exist(out, *(fc->fn), fc->pos, global);
-    //check params match with function params [quantity and type]
+    // check params match with function params [quantity and type]
     vector<aA_rightVal> vals = fc->vals;
     vector<aA_varDecl> *params = func2Param[*(fc->fn)];
     if (vals.size() != params->size())
@@ -927,7 +1040,9 @@ aA_type check_FuncCall(std::ostream *out, aA_fnCall fc)
     }
     for (int i = 0; i < vals.size(); i++)
     {
-        check_RightVal(out, vals[i], local, (*params)[i]->u.declScalar->type);
+        aA_type leftType = get_type_of((*params)[i]);
+
+        check_RightVal(out, vals[i], local, leftType);
     }
     return find_token_global(*(fc->fn));
 }
@@ -936,7 +1051,7 @@ void check_WhileStmt(std::ostream *out, aA_whileStmt ws)
 {
     if (!ws)
         return;
-    check_BoolExpr(out, ws->boolExpr);
+    check_BoolExpr(out, ws->boolExpr, local);
     int before = l_token_stack.size();
     for (aA_codeBlockStmt s : ws->whileStmts)
     {
@@ -954,12 +1069,15 @@ void check_CallStmt(std::ostream *out, aA_callStmt cs)
     return;
 }
 
-void check_ReturnStmt(std::ostream *out, aA_returnStmt rs, param_level level, aA_type func_type)
+void check_ReturnStmt(std::ostream *out, aA_returnStmt rs, param_level level)
 {
     if (!rs)
         return;
-    //check return type match with function return type
-    aA_type type = nullptr;
+    // check return type match with function return type
+    if (func_type == nullptr)
+    {
+        cout<<" in reutrn function return type not defined!\n";
+    }
     check_RightVal(out, rs->retVal, level, func_type);
     return;
 }
