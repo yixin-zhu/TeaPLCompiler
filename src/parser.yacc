@@ -169,7 +169,6 @@ RIGHTVAL : ARITHEXPR
 
 LEFTVAL : TOKEN_ID
 {
-    //printf("tokenid\n");
     $$=A_IdExprLVal($1->pos, $1->id);
 }
 | ARRAYEXPR
@@ -372,6 +371,10 @@ RETURNSTMT : RET RIGHTVAL ';'
 {
     $$=A_ReturnStmt($1, $2);
 }
+| RET ';'
+{
+    $$=A_ReturnStmt($1, NULL);
+}
 
 ASSIGNSTMT : LEFTVAL '=' RIGHTVAL ';'
 {
@@ -549,9 +552,9 @@ ARITHUEXPR: OP_MINUS EXPRUNIT
 }
 ;
 
-ARRAYEXPR: TOKEN_ID '[' INDEXEXPR ']'
+ARRAYEXPR: LEFTVAL '[' INDEXEXPR ']'
 {
-    $$=A_ArrayExpr($1->pos, $1->id, $3);
+    $$=A_ArrayExpr($1->pos, $1, $3);
 }
 
 INDEXEXPR: TOKEN_ID
@@ -564,9 +567,9 @@ INDEXEXPR: TOKEN_ID
 }
 ;
 
-MEMBEREXPR: TOKEN_ID '.' TOKEN_ID
+MEMBEREXPR: LEFTVAL '.' TOKEN_ID
 {
-    $$=A_MemberExpr($1->pos, $1->id, $3->id);
+    $$=A_MemberExpr($1->pos, $1, $3->id);
 }
 ;
 

@@ -34,8 +34,8 @@ y.tab.o: y.tab.cpp y.tab.hpp
 lex.yy.o: lex.yy.cpp y.tab.hpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-# TypeCheck.o: TypeCheck.cpp TypeCheck.h
-# 	$(CXX) $(CXXFLAGS) -c $<
+TypeCheck.o: TypeCheck.cpp TypeCheck.h
+	$(CXX) $(CXXFLAGS) -c $<
 
 TeaplAst.o: TeaplAst.cpp TeaplAst.h
 	$(CXX) $(CXXFLAGS) -c $<

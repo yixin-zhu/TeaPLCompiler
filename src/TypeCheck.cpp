@@ -542,15 +542,17 @@ void check_struct_exist(std::ostream *out, A_pos pos, aA_type struct_type)
     }
 }
 // struct member can't have same name
-aA_type check_struct_and_member_exists(std::ostream *out, A_pos pos, aA_type struct_type, string member_id)
+aA_type check_struct_and_member_exists(std::ostream *out, A_pos pos, aA_type struct_type, string member_id, int &arr_len)
 {
     check_struct_exist(out, pos, struct_type);
     string struct_id = *(struct_type->u.structType); 
     vector<aA_varDecl> member_decl = *struct2Members[struct_id];
     string id;
     aA_type type;
+    int current_len = -1;
     for (auto member_exp : member_decl)
     {
+        current_len = -1;
         if (member_exp->kind == A_varDeclType::A_varDeclScalarKind)
         {
             id = *(member_exp->u.declScalar->id);
@@ -560,9 +562,11 @@ aA_type check_struct_and_member_exists(std::ostream *out, A_pos pos, aA_type str
         {
             id = *(member_exp->u.declArray->id);
             type = member_exp->u.declArray->type;
+            current_len = member_exp->u.declArray->len;
         }
         if (id == member_id)
         {
+            arr_len = current_len;
             return type;
         }
     }
@@ -746,7 +750,7 @@ void check_CodeblockStmt(std::ostream *out, aA_codeBlockStmt cs, param_level lev
     return;
 }
 
-aA_type check_LeftVal(std::ostream *out, aA_leftVal lv, param_level level)
+aA_type check_LeftVal(std::ostream *out, aA_leftVal lv, param_level level, int &arr_len)
 {
     if (!lv)
         return nullptr;
@@ -757,6 +761,7 @@ aA_type check_LeftVal(std::ostream *out, aA_leftVal lv, param_level level)
     {
         string id = *(lv->u.id);
         type = find_token(id, level);
+        arr_len = get_arr_len(id, level);
     }
     break;
     case A_leftValType::A_arrValKind:
@@ -768,7 +773,7 @@ aA_type check_LeftVal(std::ostream *out, aA_leftVal lv, param_level level)
     case A_leftValType::A_memberValKind:
     {
         aA_memberExpr memberExpr = lv->u.memberExpr;
-        type = check_MemberExpr(out, memberExpr, level);
+        type = check_MemberExpr(out, memberExpr, level, arr_len);
     }
     break;
     }
@@ -780,7 +785,8 @@ void check_AssignStmt(std::ostream *out, aA_assignStmt as, param_level level)
     if (!as)
         return;
     string name;
-    aA_type leftType = check_LeftVal(out, as->leftVal, level);
+    int arr_len = -1;
+    aA_type leftType = check_LeftVal(out, as->leftVal, level, arr_len);
     if (leftType == nullptr)
     {
         error_print(out, as->pos, "left variable missing!");
@@ -855,23 +861,27 @@ int get_arr_len(string id, param_level level)
             return array2len[global][id];
         }
     }
-    return 0;
+    return -1;
 }
-
+//todo
 aA_type check_ArrayExpr(std::ostream *out, aA_arrayExpr ae, param_level level)
 {
     if (!ae)
         return nullptr;
-    string id = *(ae->arr);
+    int arr_len = -1;
+    aA_type arr_type =  check_LeftVal(out, ae->arr, level, arr_len);
+    if (arr_len == -1)
+    {
+        error_print(out, ae->pos, "array not exist!");
+    }
+    //todo:check if is array
+    // string id = *(ae->arr);
     // check array exists
-    check_token_exist(out, id, ae->pos, level);
+    // check_token_exist(out, id, ae->pos, level);
     // check array index within range
     aA_indexExpr indexExp = ae->idx;
-    int arr_len = get_arr_len(id, level);
     check_IndexExpr(out, indexExp, level, arr_len);
-    // return the type of the array
-    aA_type type = find_token(id, level);
-    return type;
+    return arr_type;
 }
 
 /*
@@ -882,16 +892,15 @@ aA_type check_ArrayExpr(std::ostream *out, aA_arrayExpr ae, param_level level)
 // you may need to check if the type of this expression matches with its
 // leftvalue or rightvalue, so return its aA_type would be a good way. Feel
 // free to change the design pattern if you need.
-aA_type check_MemberExpr(std::ostream *out, aA_memberExpr me, param_level level)
+aA_type check_MemberExpr(std::ostream *out, aA_memberExpr me, param_level level, int& arr_len)
 {
     if (!me)
         return nullptr;
-    string struct_id = *(me->structId);
+    aA_leftVal struct_id = (me->structId);
     string member_id = *(me->memberId);
-    check_token_exist(out, struct_id, me->pos, level);
-    aA_type struct_type = find_token(struct_id, level);
+    aA_type struct_type = check_LeftVal(out, struct_id, level, arr_len);
     // check struct and member exists
-    aA_type member_type = check_struct_and_member_exists(out, me->pos, struct_type, member_id);
+    aA_type member_type = check_struct_and_member_exists(out, me->pos, struct_type, member_id, arr_len);
     return member_type;
 }
 
@@ -1076,7 +1085,7 @@ void check_ReturnStmt(std::ostream *out, aA_returnStmt rs, param_level level)
     // check return type match with function return type
     if (func_type == nullptr)
     {
-        cout<<" in reutrn function return type not defined!\n";
+        return;
     }
     check_RightVal(out, rs->retVal, level, func_type);
     return;
