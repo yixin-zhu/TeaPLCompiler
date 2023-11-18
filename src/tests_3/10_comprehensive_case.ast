@@ -94,7 +94,8 @@ A_program
 			|--A_codeBlockStmt 
 				|--A_assignStmt 
 					|--A_leftVal 
-						|--A_memberExpr a.node = 
+						|--A_memberExpr 
+						|--A_leftVal a.node = 
 					|--A_rightVal 
 						|--A_arithExpr 
 							|--A_exprUnit 3;
@@ -102,7 +103,8 @@ A_program
 			|--A_codeBlockStmt 
 				|--A_assignStmt 
 					|--A_leftVal 
-						|--A_memberExpr a.len = 
+						|--A_memberExpr 
+						|--A_leftVal a.len = 
 					|--A_rightVal 
 						|--A_arithExpr 
 							|--A_exprUnit 20;
@@ -113,13 +115,15 @@ A_program
 						|--A_boolUnit (
 							|--A_comExpr 
 								|--A_exprUnit 
-									|--A_memberExpr a.len>
+									|--A_memberExpr 
+									|--A_leftVal a.len>
 								|--A_exprUnit 0)){
 
 					|--A_codeBlockStmt 
 						|--A_assignStmt 
 							|--A_leftVal 
-								|--A_memberExpr a.node = 
+								|--A_memberExpr 
+								|--A_leftVal a.node = 
 							|--A_rightVal 
 								|--A_arithExpr 
 									|--A_exprUnit 
@@ -127,7 +131,8 @@ A_program
 										|--A_rightVal 
 											|--A_arithExpr 
 												|--A_exprUnit 
-													|--A_memberExpr a.node, 
+													|--A_memberExpr 
+													|--A_leftVal a.node, 
 										|--A_rightVal 
 											|--A_arithExpr 
 												|--A_exprUnit a2);
@@ -135,13 +140,15 @@ A_program
 					|--A_codeBlockStmt 
 						|--A_assignStmt 
 							|--A_leftVal 
-								|--A_memberExpr a.len = 
+								|--A_memberExpr 
+								|--A_leftVal a.len = 
 							|--A_rightVal 
 								|--A_arithExpr 
 									|--A_arithBiOpExpr 
 										|--A_arithExpr 
 											|--A_exprUnit 
-												|--A_memberExpr a.len-
+												|--A_memberExpr 
+												|--A_leftVal a.len-
 										|--A_arithExpr 
 											|--A_exprUnit b3;
 }
@@ -155,9 +162,11 @@ A_program
 							|--A_rightVal 
 								|--A_arithExpr 
 									|--A_exprUnit 
-										|--A_memberExpr a.node, 
+										|--A_memberExpr 
+										|--A_leftVal a.node, 
 							|--A_rightVal 
 								|--A_arithExpr 
 									|--A_exprUnit 
-										|--A_memberExpr a.len);
+										|--A_memberExpr 
+										|--A_leftVal a.len);
 }

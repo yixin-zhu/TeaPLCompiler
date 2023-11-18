@@ -63,7 +63,8 @@ A_program
 			|--A_codeBlockStmt 
 				|--A_assignStmt 
 					|--A_leftVal 
-						|--A_memberExpr c.node = 
+						|--A_memberExpr 
+						|--A_leftVal c.node = 
 					|--A_rightVal 
 						|--A_arithExpr 
 							|--A_exprUnit 3;
@@ -71,7 +72,8 @@ A_program
 			|--A_codeBlockStmt 
 				|--A_assignStmt 
 					|--A_leftVal 
-						|--A_memberExpr a.len = 
+						|--A_memberExpr 
+						|--A_leftVal a.len = 
 					|--A_rightVal 
 						|--A_arithExpr 
 							|--A_exprUnit 20;
@@ -87,13 +89,15 @@ A_program
 					|--A_codeBlockStmt 
 						|--A_assignStmt 
 							|--A_leftVal 
-								|--A_memberExpr c.node = 
+								|--A_memberExpr 
+								|--A_leftVal c.node = 
 							|--A_rightVal 
 								|--A_arithExpr 
 									|--A_arithBiOpExpr 
 										|--A_arithExpr 
 											|--A_exprUnit 
-												|--A_memberExpr c.node+
+												|--A_memberExpr 
+												|--A_leftVal c.node+
 										|--A_arithExpr 
 											|--A_exprUnit 
 												|--A_fnCall foo(
@@ -121,5 +125,6 @@ A_program
 				|--A_rightVal 
 					|--A_arithExpr 
 						|--A_exprUnit 
-							|--A_memberExpr c.node;
+							|--A_memberExpr 
+							|--A_leftVal c.node;
 }

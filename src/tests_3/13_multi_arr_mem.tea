@@ -1,0 +1,22 @@
+struct Struct1 {
+    len1[11]:int,
+    name:int
+}
+struct MyStruct { 
+    node:int,
+    len[10]:int,
+    sonStruct: Struct1
+}
+
+fn foo(a:int, b:int)->int{
+    let c:MyStruct;
+    c.node = 0;
+    c.len[1] = 0;
+    //c.len[11] = 0;
+    c.sonStruct.name = 2;
+}
+
+/*
+    key:
+    type check passed.
+*/

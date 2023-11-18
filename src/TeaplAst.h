@@ -18,6 +18,7 @@ typedef struct A_boolUnit_* A_boolUnit;
 typedef struct A_boolBiOpExpr_* A_boolBiOpExpr;
 typedef struct A_boolUOpExpr_* A_boolUOpExpr;
 typedef struct A_comExpr_* A_comExpr;
+typedef struct A_rightVal_* A_rightVal;
 typedef struct A_leftVal_* A_leftVal;
 typedef struct A_assignStmt_* A_assignStmt;
 typedef struct A_rightValList_* A_rightValList;
@@ -25,6 +26,8 @@ typedef struct A_varDefScalar_* A_varDefScalar;
 typedef struct A_varDefArray_* A_varDefArray;
 typedef struct A_varDeclScalar_* A_varDeclScalar;
 typedef struct A_varDeclArray_* A_varDeclArray;
+typedef struct A_varDecl_* A_varDecl;
+typedef struct A_varDef_* A_varDef;
 typedef struct A_varDeclStmt_* A_varDeclStmt;
 typedef struct A_varDeclList_* A_varDeclList;
 typedef struct A_structDef_* A_structDef;
@@ -95,14 +98,14 @@ struct A_indexExpr_ {
 // arr[idx]
 struct A_arrayExpr_ {
     A_pos pos;
-    char* arr;
+    A_leftVal arr;
     A_indexExpr idx;
 };
 
 // structId.memberId
 struct A_memberExpr_ {
     A_pos pos;
-    char* structId;
+    A_leftVal structId;
     char* memberId;
 };
 
@@ -493,8 +496,8 @@ A_rightValList A_RightValList(A_rightVal head, A_rightValList tail);
 A_fnCall A_FnCall(A_pos pos, char* fn, A_rightValList vals);
 A_indexExpr A_NumIndexExpr(A_pos pos, int num);
 A_indexExpr A_IdIndexExpr(A_pos pos, char* id);
-A_arrayExpr A_ArrayExpr(A_pos pos, char* arr, A_indexExpr idx);
-A_memberExpr A_MemberExpr(A_pos pos, char* structId, char* memberId);
+A_arrayExpr A_ArrayExpr(A_pos pos, A_leftVal arr, A_indexExpr idx);
+A_memberExpr A_MemberExpr(A_pos pos, A_leftVal structId, char* memberId);
 A_exprUnit A_NumExprUnit(A_pos pos, int num);
 A_exprUnit A_IdExprUnit(A_pos pos, char* id);
 A_exprUnit A_ArithExprUnit(A_pos pos, A_arithExpr arithExpr);
