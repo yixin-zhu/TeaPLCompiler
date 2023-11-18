@@ -23,8 +23,8 @@ num := [1-9][0-9]* | 0
 An expression is a composd of identifiers, values,  and operators, e.g., 1+2, a*(b+c). For simplicity, we donot support unary operators, such as ++, +=.
 
 ```
-arithExpr :=  arithExpr arithBiOp arithExpr | exprUnit
-exprUnit :=  num | id | < ( > arithExpr < ) > | fnCall | id < [ > id | num < ] > | id < . > id | arithUOp exprUnit
+arithExpr := arithExpr arithBiOp arithExpr | exprUnit
+exprUnit :=  num | id | < ( > arithExpr < ) > | fnCall | leftVal < [ > id | num < ] > | leftVal < . > id | arithUOp exprUnit
 arithBiOp := < + > | < - > | < * > | < / >
 arithUOp := < - >
 ```
@@ -34,7 +34,7 @@ arithUOp := < - >
 **Condition Expressions**
 
 ```
-boolExpr := boolExpr boolBiOp boolUnit | boolUnit
+boolExpr := boolExpr boolBiOp boolExpr | boolUnit
 boolUnit := exprUnit comOp exprUnit | < ( > boolExpr < ) > | boolUOp boolUnit // we restrict the operands of comparison operators to be exprUnit instead of rightVal to avoid confusing the precedence.
 boolBiOp := < && > | < || >
 boolUOp := < ! >
@@ -46,7 +46,7 @@ We restrict neither the left value nor right value can be assignments.
 
 ```
 assignStmt := leftVal < = > rightVal < ; >  
-leftVal := id | id < [ > id | num < ] > | id < . > id
+leftVal := id | leftVal < [ > id | num < ] > | leftVal < . > id
 rightVal := arithExpr | boolExpr
 ```
 
@@ -127,7 +127,7 @@ The grammar is specified as follows.
 ```
 fnDef := fnDecl codeBlock  
 codeBlock :=  < { > (varDeclStmt | assignStmt | callStmt | ifStmt | whileStmt | returnStmt | continueStmt | breakStmt | < ; > )* < } > 
-returnStmt ：= < ret > rightVal < ; >
+returnStmt ：= < ret > rightVal < ; > | < ret > < ; >
 continueStmt := < continue > < ; >
 breakStmt := < break > < ; >
 ```

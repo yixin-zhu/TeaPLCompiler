@@ -1,30 +1,33 @@
-struct MyStruct1 { 
-    node:int, 
-    val:int  
-}
+let N:int;
 
-let gc:int = 0;
+let newline:int;
 
-let gab[10]:int = {0};
-
-fn foo(a:int, b:int)->int;
-
-fn main()->int{
-    let lb:int = ((1+2) < 3);
-    let lc:int = 0;
-
-    let ls1:MyStruct1;
-    ls1.node = lb;
-    ls1.val = lc;
-
-
-    ret foo(ls1.node, ls1.val);
-}
-
-fn foo(a:int, b:int)->int{
-    while((a>b) && (a>=0) && (b<=0)){
-        a = a-1;
-        b = b+1;
+fn factor(n:int)->int
+{
+    let i:int;
+    let sum:int;
+    sum=0;
+    i=1;
+    while(i<(n+1))
+    {
+        if(((n/i)*i) == n)
+        {
+            sum=sum+i;
+        }
+        i=i+1;
     }
-    ret a+b;
+    ret sum;
+}
+
+fn main()->int
+{
+    _sysy_starttime(24);
+    N=4;
+    newline=10;
+    let i:int;
+    let m:int;
+    m = 1478;
+    let t:int;
+    _sysy_stoptime(31);
+    ret factor(m);
 }

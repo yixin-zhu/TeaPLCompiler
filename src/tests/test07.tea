@@ -1,33 +1,21 @@
-let count:int = 0;
-
-fn foonull()->int;
-
-fn main()->int{
-    let l1:int = 1;
-    let l2:int = 2;
-    let l3:int = 3;
-    let l4:int = 4;
-    let l5:int = 5;
-
-    while((l3 < l4)){
-        count = count+1;
-        if(count == 100580){
-            break;
-        }
+fn main()->int {
+    _sysy_starttime(2);
+    let i:int = 0;
+    let a:int = (1 < 9) && (i > 0);
+    while(i < 1000000) {
+        let dom:int = 0;
+        i = i + 1;
     }
-
-    count = 0;
-
-    if(((l1+foonull()) < 10100) || ((l2+foonull()) < 10100)){
-        if(count == 1){
-            ret 0;
-        }
-    }else{
-        ret 10;
-    }
-}
-
-fn foonull()->int{
-    count = count + 1;
-    ret 10086;
+    putint(a);
+    _sysy_stoptime(10);
+    ret 0;
+    let b:int = 1;
+    ret b;
+    let c:int = 2;
+    ret c;
+    let d:int = 3;
+    ret d;
+    let e:int = 4;
+    ret e;
+    let f:int = 5;
 }

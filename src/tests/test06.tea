@@ -1,34 +1,32 @@
-struct MyStruct2 {
-    temp:int,
-    node:int, 
-    val:int  
+struct Node {
+    l:int,
+    r:int
 }
 
-let gb:int = 0;
-let gs2:MyStruct2;
+struct Bar {
+    node:Node,
+    nodes[10]:Node,
+    arr[10]:int
+}
 
-let gad[10]:int = {gb+26};
-
-fn sbarnull()->MyStruct2;
+fn foo(c[10]:Bar) {
+    c[1].arr[3] = 5;
+    ret;
+}
 
 fn main()->int{
-    let lb:int = 0;
-    let lc:int = 0;
-
-    gs2.node = lb;
-    gs2.val = lc;
-    gs2.temp = lb+lc;
-
-    gad[0] = 56+-32*gs2.temp;
-    gs2 = sbarnull();
-
-
-    ret -gs2.node+gs2.val;
-}
-
-fn sbarnull()->MyStruct2{
-    gs2.temp = 0;
-    gs2.node = 1;
-    gs2.val = 2;
-    ret gs2;
+    _sysy_starttime(18);
+    let c[10]:Bar;
+    c[0].node.l = 1;
+    c[0].node.r = 2;
+    c[0].nodes[2].l = 3;
+    c[0].nodes[2].r = 4;
+    foo(c);
+    putint(c[0].node.l);
+    putint(c[0].node.r);
+    putint(c[0].nodes[2].l);
+    putint(c[0].nodes[2].r);
+    putint(c[1].arr[3]);
+    _sysy_stoptime(30);
+    ret 0;
 }
