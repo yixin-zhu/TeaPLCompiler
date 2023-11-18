@@ -998,7 +998,8 @@ aA_type check_ExprUnit(std::ostream *out, aA_exprUnit eu, param_level level)
     case A_exprUnitType::A_memberExprKind:
     {
         aA_memberExpr memberExpr = eu->u.memberExpr;
-        ret = check_MemberExpr(out, memberExpr, level);
+        int arr_len;
+        ret = check_MemberExpr(out, memberExpr, level, arr_len);
     }
     break;
     case A_exprUnitType::A_arithExprKind:
