@@ -62,4 +62,4 @@ temp.o: temp.cpp temp.h
 	$(CXX) $(CXXFLAGS) -c $<
 
 clean:
-	rm *.o *.output y.tab.cpp y.tab.hpp lex.yy.cpp compiler tests/*.ast tests/*.ll output/*.ll output/*.out
+	rm *.o *.output y.tab.cpp y.tab.hpp lex.yy.cpp compiler tests/*.ast output/*.ll output/*.out

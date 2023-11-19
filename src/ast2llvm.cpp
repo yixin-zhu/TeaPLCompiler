@@ -507,16 +507,305 @@ std::vector<LLVMIR::L_def*> ast2llvmProg_first(aA_program p)
 
 std::vector<Func_local*> ast2llvmProg_second(aA_program p)
 {
-    
+    vector<Func_local*> locals;
+    for(const auto &v : p->programElements)
+    {
+        if (v->kind != A_programFnDefKind) {
+            continue;
+        } 
+        
+    }
+    return locals;
 }
 
 Func_local* ast2llvmFunc(aA_fnDef f)
 {
-    
+    std::string name = get_Func_local_name(f->fnDecl);
+    LLVMIR::FuncType ret = get_Func_local_ret(f->fnDecl);
+    std::vector<Temp_temp *> args = get_Func_local_args(f->fnDecl);
+    //get irs
+    emit_irs.clear();
+    get_L_stm_list(f->stmts);
+    std::list<LLVMIR::L_stm *> irs = std::list<LLVMIR::L_stm *>(emit_irs);
+    Func_local* fl = (Func_local*) malloc(sizeof(Func_local));
+    // get Func local
+    *fl = Func_local(name, ret, args, irs);
+    return fl;
 }
 
+std::string get_Func_local_name(aA_fnDecl fd) {
+    return *(fd->id);
+}
+
+std::vector<Temp_temp *> get_Func_local_args(aA_fnDecl fd) {
+    std::vector<Temp_temp *> args = std::vector<Temp_temp *>();
+    for (auto varDecl: fd->paramDecl->varDecls) {
+        args.push_back(get_Temp_temp(varDecl));
+    }
+    return args;
+}
+
+LLVMIR::FuncType get_Func_local_ret(aA_fnDecl fd)
+{
+    return (funcReturnMap.find(*fd->id)->second);
+}
+//todo add to map
+Temp_temp* get_Temp_temp(aA_varDecl vd){
+    if(vd->kind == A_varDeclScalarKind){
+        if(vd->u.declScalar->type->type == A_nativeTypeKind){
+            return Temp_newtemp_int();
+        }
+        else if(vd->u.declScalar->type->type == A_structTypeKind){
+            return Temp_newtemp_struct(*(vd->u.declScalar->id));
+        }
+        else{
+            assert(0);
+        }
+    }
+    else if(vd->kind == A_varDeclArrayKind){
+        if(vd->u.declArray->type->type == A_nativeTypeKind){
+            return Temp_newtemp_int_ptr(vd->u.declArray->len);
+        }
+        else if(vd->u.declArray->type->type == A_structTypeKind){
+            return Temp_newtemp_struct_ptr(vd->u.declArray->len,
+                    *(vd->u.declArray->id));
+        }
+        else{
+            assert(0);
+        }
+    }
+    else{
+        assert(0);
+    }
+    return Temp_newtemp_int();
+}
+
+vector<L_stm> get_L_stm_list(vector<aA_codeBlockStmt> cbss) {
+    vector<L_stm> lstms = vector<L_stm>();
+    for(auto cbs: cbss) {
+        vector<L_stm> tmp = get_L_stm(cbs);
+        lstms.insert(lstms.end(), tmp.begin(), tmp.end());
+    }
+}
+
+vector<L_stm> get_L_stm(aA_codeBlockStmt cbs) {
+    std::vector<L_stm> lstms = std::vector<L_stm>();
+    //todo
+    switch (cbs->kind) {
+        case A_nullStmtKind:
+            break;
+        case A_varDeclStmtKind:
+            lstms = varDeclStmt2Lstm(cbs->u.varDeclStmt);
+            break;
+        case A_assignStmtKind:
+            lstms = assignStmt2Lstm(cbs->u.assignStmt);
+            break;
+        case A_callStmtKind:
+            lstms = callStmt2Lstm(cbs->u.callStmt);
+            break;
+        case A_ifStmtKind:
+            lstms = ifStmt2Lstm(cbs->u.ifStmt);
+            break;
+        case A_whileStmtKind:
+            lstms = whileStmt2Lstm(cbs->u.whileStmt);
+            break;
+        case A_returnStmtKind:
+            lstms = returnStmt2Lstm(cbs->u.returnStmt);
+            break;
+        case A_continueStmtKind:
+            // todo : special
+            break;
+        case A_breakStmtKind:
+            // todo : special
+            break;
+        default:
+            assert(0);
+    }
+    return lstms;
+}
+
+vector<L_stm> varDeclStmt2Lstm(aA_varDeclStmt vds) {
+    vector<L_stm> lstms = vector<L_stm>();
+    switch (vds->kind) {
+        case A_varDeclKind:
+            lstms = varDecl2Lstm(vds->u.varDecl);
+            break;
+        case A_varDefKind:
+        // todo :vardef
+            lstms = varDef2Lstm(vds->u.varDef);
+            break;
+        default:
+            assert(0);
+    }
+    return lstms;
+}
+
+vector<L_stm> varDecl2Lstm(aA_varDecl vd) {
+    vector<L_stm> lstms = vector<L_stm>();
+    switch (vd->kind) {
+        case A_varDeclScalarKind:
+            if(vd->u.declScalar->type->type == A_nativeTypeKind){
+                Temp_temp *temp = Temp_newtemp_int();
+                AS_operand* dst = AS_Operand_Temp(temp);
+                L_stm *alloca = L_Alloca(dst);
+                lstms.push_back(*alloca);
+                localVarMap.insert({*vd->u.declScalar->id,temp});
+                
+            }
+            else if(vd->u.declScalar->type->type == A_structTypeKind){
+                Temp_temp *temp = Temp_newtemp_struct(*(vd->u.declScalar->type->u.structType));
+                AS_operand* dst = AS_Operand_Temp(temp);
+                L_stm *alloca = L_Alloca(dst);
+                lstms.push_back(*alloca);
+                localVarMap.insert({*vd->u.declScalar->id,temp});
+            }
+            else{
+                assert(0);
+            }
+            break;
+        case A_varDeclArrayKind:
+            if(vd->u.declArray->type->type == A_nativeTypeKind){
+                Temp_temp *temp = Temp_newtemp_int_ptr(vd->u.declArray->len);
+                AS_operand* dst = AS_Operand_Temp(temp);
+                L_stm *alloca = L_Alloca(dst);
+                lstms.push_back(*alloca);
+                localVarMap.insert({*vd->u.declArray->id,temp});
+            }
+            else if(vd->u.declArray->type->type == A_structTypeKind){
+                Temp_temp *temp = Temp_newtemp_struct_ptr(vd->u.declArray->len,
+                        *(vd->u.declArray->type->u.structType));
+                AS_operand* dst = AS_Operand_Temp(temp);
+                L_stm *alloca = L_Alloca(dst);
+                lstms.push_back(*alloca);
+                localVarMap.insert({*vd->u.declArray->id,temp});
+            }
+            else{
+                assert(0);
+            }
+            
+            break;
+        default:
+            assert(0);
+    }
+    return lstms;
+}
+
+vector<L_stm> varDef2Lstm(aA_varDef vd) {
+    vector<L_stm> lstms = vector<L_stm>();
+    switch (vd->kind) {
+        case A_varDefScalarKind:
+            if(vd->u.defScalar->type->type == A_nativeTypeKind){
+                Temp_temp *temp = Temp_newtemp_int();
+                AS_operand* dst = AS_Operand_Temp(temp);
+                AS_operand* src = ast2llvmRightVal(vd->u.defScalar->val);
+                L_stm *alloca = L_Alloca(dst);
+                L_stm *store = L_Store(src, dst);
+                lstms.push_back(*alloca);
+                lstms.push_back(*store);
+                localVarMap.emplace(*vd->u.defScalar->id,temp);
+            }
+            else if(vd->u.defScalar->type->type == A_structTypeKind){
+                Temp_temp *temp = Temp_newtemp_struct(*(vd->u.defScalar->type->u.structType));
+                AS_operand* dst = AS_Operand_Temp(temp);
+                AS_operand* src = ast2llvmRightVal(vd->u.defScalar->val);
+                L_stm *alloca = L_Alloca(dst);
+                L_stm *store = L_Store(src, dst);
+                lstms.push_back(*alloca);
+                lstms.push_back(*store);
+                localVarMap.emplace(*vd->u.defScalar->id,temp);
+            }
+            else{
+                assert(0);
+            }
+            break;
+        case A_varDefArrayKind:
+            if(vd->u.defArray->type->type == A_nativeTypeKind){
+                Temp_temp *temp = Temp_newtemp_int_ptr(vd->u.defArray->len);
+                AS_operand* dst = AS_Operand_Temp(temp);
+                AS_operand* src = ast2llvmRightVal(vd->u.defArray->vals[0]);
+                L_stm *alloca = L_Alloca(dst);
+                L_stm *store = L_Store(src, dst);
+                lstms.push_back(*alloca);
+                lstms.push_back(*store);
+                localVarMap.insert({*vd->u.defArray->id,temp});
+            }
+            else if(vd->u.defArray->type->type == A_structTypeKind){
+                Temp_temp *temp = Temp_newtemp_struct_ptr(vd->u.defArray->len, *(vd->u.defArray->type->u.structType));
+                AS_operand* dst = AS_Operand_Temp(temp);
+                AS_operand* src = ast2llvmRightVal(vd->u.defArray->vals[0]);
+                L_stm *alloca = L_Alloca(dst);
+                L_stm *store = L_Store(src, dst);
+                lstms.push_back(*alloca);
+                lstms.push_back(*store);
+                localVarMap.insert({*vd->u.defArray->id,temp});
+            }
+            else{
+                assert(0);
+            }
+            break;
+        default:
+            assert(0);
+    }
+    return lstms;
+}
+
+vector<L_stm> assignStmt2Lstm(aA_assignStmt as){
+    vector<L_stm> lstms = vector<L_stm>();
+    AS_operand* dst = ast2llvmLeftVal(as->leftVal);
+    AS_operand* src = ast2llvmRightVal(as->rightVal);
+    L_stm *store = L_Store(src, dst);
+    lstms.push_back(*store);
+    return lstms;
+}
+
+// can only return int
+vector<L_stm> callStmt2Lstm(aA_callStmt cs){
+    vector<L_stm> lstms = vector<L_stm>();
+    AS_operand* res = AS_Operand_Temp(Temp_newtemp_int());
+    vector<AS_operand*> args;
+    for(aA_rightVal val : cs->fnCall->vals){
+        args.push_back(ast2llvmRightVal(val));
+    }
+    L_stm* call = L_Call(*(cs->fnCall->fn), res, args);
+    return lstms;
+}
+
+
+vector<L_stm> ifStmt2Lstm(aA_ifStmt is){
+    vector<L_stm> lstms = vector<L_stm>();
+    Temp_label* true_label = Temp_newlabel();
+    Temp_label* false_label = Temp_newlabel();
+    Temp_label* end_label = Temp_newlabel();
+    AS_operand* aso = ast2llvmBoolExpr(is->boolExpr, true_label, false_label);
+    L_stm* cjump = L_Cjump(aso, true_label, false_label);
+    vector<L_stm> if_stmts = get_L_stm_list(is->ifStmts);
+    vector<L_stm> else_lstms = get_L_stm_list(is->elseStmts);
+    L_stm* jump1 = L_Jump(end_label);
+    L_stm* jump2 = L_Jump(end_label);
+
+    lstms.push_back(*cjump);
+    lstms.push_back(*L_Label(true_label));
+    lstms.insert(lstms.end(), if_stmts.begin(), if_stmts.end());
+    lstms.push_back(*jump1);
+    lstms.push_back(*L_Label(false_label));
+    lstms.insert(lstms.end(), else_lstms.begin(), else_lstms.end());
+    lstms.push_back(*jump2);
+    lstms.push_back(*L_Label(end_label));
+    
+    return lstms;
+}
+
+
+vector<L_stm> whileStmt2Lstm(aA_whileStmt ws){
+    vector<L_stm> lstms = vector<L_stm>();
+    return lstms;
+
+}
+
+// todo: is this for while block only?
 void ast2llvmBlock(aA_codeBlockStmt b,Temp_label *con_label,Temp_label *bre_label)
 {
+
     
 }
 
