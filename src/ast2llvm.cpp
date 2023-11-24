@@ -1331,11 +1331,88 @@ AS_operand *ast2llvmExprUnit(aA_exprUnit e)
             break;
     }
 }
-//todo
+
+/*
+struct L_func
+{
+    std::string name;
+    FuncType ret;
+    std::vector<Temp_temp*> args;
+    std::list<L_block*> blocks;
+    L_func(const std::string &_name,FuncType _ret,const std::vector<Temp_temp*> _args,const std::list<L_block*> &_blocks);
+};
+
+struct Func_local
+{
+    std::string name;
+    LLVMIR::FuncType ret;
+    std::vector<Temp_temp *> args;
+    std::list<LLVMIR::L_stm *> irs;
+    Func_local( const std::string _name, 
+                LLVMIR::FuncType _ret, 
+                const std::vector<Temp_temp *> &_args, 
+                const std::list<LLVMIR::L_stm *> &_irs): name(_name), ret(_ret), args(_args), irs(_irs) {}
+};
+struct L_block
+{
+    Temp_label *label;
+    std::unordered_set<Temp_label*> succs;
+    std::list<L_stm*> instrs;
+    L_block(Temp_label *_label,const std::unordered_set<Temp_label*> &_succs,const std::list<L_stm*> &_instrs);
+};
+L_block* LLVMIR::L_Block(const std::list<L_stm*> instrs)
+*/
+std::list<LLVMIR::L_block *> ir2blocks(std::list<LLVMIR::L_stm *> irs)
+{
+    std::list<LLVMIR::L_block *> blocks;
+    std::list<LLVMIR::L_stm *> block;
+    for (auto &ir : irs)
+    {
+        if (ir->type == L_StmKind::T_LABEL)
+        {
+            if (block.size() != 0)
+            {
+                blocks.push_back(LLVMIR::L_Block(block));
+                block.clear();
+            }
+        }
+        block.push_back(ir);
+    }
+    if (block.size() != 0)
+    {
+        blocks.push_back(LLVMIR::L_Block(block));
+    }
+    return blocks;
+}
+
 LLVMIR::L_func *ast2llvmFuncBlock(Func_local *f)
 {
+    std::string name = f->name;
+    LLVMIR::FuncType ret = f->ret;
+    std::vector<Temp_temp *> args = f->args;
+    std::list<LLVMIR::L_stm *> irs = f->irs;
+    std::list<LLVMIR::L_block *> blocks = ir2blocks(irs);
+    LLVMIR::L_func *lf = new LLVMIR::L_func(name, ret, args, blocks);
+    return lf;
 }
-//todo
+
 void ast2llvm_moveAlloca(LLVMIR::L_func *f)
 {
+    std::list<LLVMIR::L_stm *> allocas;
+    auto first_block = f->blocks.front();
+
+    for (auto b: f->blocks) {
+        allocas.clear();
+        for (auto i: b->instrs) {
+            if (i->type == L_StmKind::T_ALLOCA) {
+                allocas.push_back(i);
+            }
+        }
+        for (auto all: allocas) {
+            b->instrs.remove(all);
+        }
+        for (auto all: allocas) {
+            first_block->instrs.push_front(all);
+        }
+    }
 }
